@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Phục Biểu Diễn Thúy Hà - Cho Thuê Trang Phục & Đạo Cụ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <!-- Sidebar Left -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fa-solid fa-masks-theater"></i></div>
+        <div class="brand-text">
+          <h2 style="font-size: 16px;">TPBD THÚY HÀ</h2>
+          <p>CHO THUÊ TRANG PHỤC</p>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="admin-only">
+          <a href="#dashboard" class="nav-item" onclick="navigateTo('dashboard')">
+            <i class="fa-solid fa-chart-pie"></i> Tổng Quan
+          </a>
+        </li>
+        <li>
+          <a href="#costumes" class="nav-item active" onclick="navigateTo('costumes')">
+            <i class="fa-solid fa-shirt"></i> Trang Phục & Đạo Cụ
+          </a>
+        </li>
+        <li class="admin-only">
+          <a href="#rentals" class="nav-item" onclick="navigateTo('rentals')">
+            <i class="fa-solid fa-receipt"></i> Đơn Thuê Trang Phục
+          </a>
+        </li>
+        <li class="admin-only">
+          <a href="#customers" class="nav-item" onclick="navigateTo('customers')">
+            <i class="fa-solid fa-users"></i> Danh Sách Khách Hàng
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-user" id="user-profile-area">
+        <!-- Rendered dynamically by updateUserUI() -->
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title">
+          <h1 id="header-page-title">Bộ Sưu Tập Trang Phục & Đạo Cụ Biểu Diễn</h1>
+        </div>
+
+        <div class="header-actions">
+          <div class="search-input-group">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="global-search" placeholder="Tìm mẫu trang phục, đạo cụ, mã..." oninput="handleGlobalSearch(this.value)">
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; background: var(--primary-light); color: var(--primary); padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700;">
+            <i class="fa-solid fa-phone"></i> Hotline / Zalo: 0988.xxx.xxx
+          </div>
+
+          <button class="btn btn-primary admin-only" onclick="openModal('modal-rental')">
+            <i class="fa-solid fa-plus"></i> Tạo Đơn Thuê Mới
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Container -->
+      <main class="page-container">
+
+        <!-- 1. DASHBOARD SECTION -->
+        <section id="section-dashboard" class="page-section">
+          <div class="stats-grid">
+            <div class="stat-card glass-card">
+              <div class="stat-icon icon-purple"><i class="fa-solid fa-shirt"></i></div>
+              <div class="stat-content">
+                <h3 id="stat-total-items">0</h3>
+                <p>Mẫu Trang Phục & Đạo Cụ</p>
+              </div>
+            </div>
+
+            <div class="stat-card glass-card">
+              <div class="stat-icon icon-blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+              <div class="stat-content">
+                <h3 id="stat-available-inventory">0</h3>
+                <p>Số Lượng Sẵn Trong Kho</p>
+              </div>
+            </div>
+
+            <div class="stat-card glass-card">
+              <div class="stat-icon icon-pink"><i class="fa-solid fa-receipt"></i></div>
+              <div class="stat-content">
+                <h3 id="stat-active-rentals">0</h3>
+                <p>Đơn Đang Cho Thuê</p>
+              </div>
+            </div>
+
+            <div class="stat-card glass-card">
+              <div class="stat-icon icon-green"><i class="fa-solid fa-money-bill-wave"></i></div>
+              <div class="stat-content">
+                <h3 id="stat-total-revenue">0 đ</h3>
+                <p>Tổng Doanh Thu Thuê Đồ</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Single Table: Urgent Rentals -->
+          <div class="glass-panel" style="padding: 24px;">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-clock-rotate-left" style="color: var(--warning);"></i>
+                <h2>Các Đơn Thuê Đang Chạy & Sắp Đến Hạn Trả Đồ</h2>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Mã Đơn</th>
+                    <th>Tên Khách Hàng / Đoàn</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Ngày Trả Đồ</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-urgent-rentals">
+                  <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Đang tải dữ liệu...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. COSTUMES & PROPS SECTION (DEFAULT VIEW FOR GUESTS) -->
+        <section id="section-costumes" class="page-section active">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Trang Phục & Đạo Cụ Biểu Diễn Thúy Hà</h2>
+            </div>
+            <button class="btn btn-primary admin-only" id="btn-add-costume" onclick="openCostumeModalForCreate()">
+              <i class="fa-solid fa-plus"></i> Thêm Mẫu Mới
+            </button>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="glass-panel" style="padding: 14px 20px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="category-filter-buttons">
+              <button class="btn btn-sm btn-primary filter-cat-btn active" onclick="filterCostumesByCategory('ALL', this)">Tất Cả</button>
+              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('1', this)">Áo Dài Biểu Diễn</button>
+              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('2', this)">Trang Phục Dân Tộc</button>
+              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('3', this)">Cổ Trang & Vương Triều</button>
+              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('4', this)">Hiện Đại & Flashmob</button>
+              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('5', this)">Đạo Cụ Sân Khấu</button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Lọc Size:</span>
+              <select id="filter-size-select" class="form-control" style="width: auto; padding: 5px 10px; font-size: 12px;" onchange="filterCostumesBySize(this.value)">
+                <option value="ALL">Tất cả size</option>
+                <option value="FREE">Free Size</option>
+                <option value="S">Size S</option>
+                <option value="M">Size M</option>
+                <option value="L">Size L</option>
+                <option value="XL">Size XL</option>
+                <option value="XXL">Size XXL</option>
+                <option value="Size 1">Size 1</option>
+                <option value="Size 2">Size 2</option>
+                <option value="Size 3">Size 3</option>
+                <option value="Size 4">Size 4</option>
+                <option value="Size 5">Size 5</option>
+                <option value="Size 6">Size 6</option>
+                <option value="Size 7">Size 7</option>
+                <option value="Size 8">Size 8</option>
+                <option value="Size 9">Size 9</option>
+                <option value="Size 10">Size 10</option>
+                <option value="Size 11">Size 11</option>
+                <option value="Size 12">Size 12</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="costumes-container" class="costumes-grid">
+            <!-- Dynamic Costume Cards Rendered Here -->
+          </div>
+        </section>
+
+        <!-- 3. RENTAL ORDERS SECTION -->
+        <section id="section-rentals" class="page-section">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Danh Sách Đơn Thuê Trang Phục & Đạo Cụ</h2>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-rental')">
+              <i class="fa-solid fa-plus"></i> Tạo Đơn Thuê Mới
+            </button>
+          </div>
+
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Mã Đơn</th>
+                    <th>Khách Hàng / Đoàn Diễn</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Ngày Thuê</th>
+                    <th>Ngày Trả</th>
+                    <th>Tổng Tiền Thuê</th>
+                    <th>Tiền Cọc</th>
+                    <th>Trạng Thái</th>
+                    <th>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-rentals-list">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. CUSTOMERS SECTION -->
+        <section id="section-customers" class="page-section">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Danh Sách Khách Hàng & Đoàn Diễn</h2>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên Khách Hàng / Đơn Vị</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Email</th>
+                    <th>Tên Đoàn / Doanh Nghiệp</th>
+                    <th>Số Lần Thuê Đồ</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-customers-list">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ====== MODALS ====== -->
+
+  <!-- 1. Modal Thêm/Sửa Trang Phục -->
+  <div id="modal-costume" class="modal-overlay">
+    <div class="modal-box glass-panel">
+      <div class="modal-header">
+        <h3 id="modal-costume-title">Thêm Mẫu Trang Phục / Đạo Cụ Mới</h3>
+        <button class="modal-close" onclick="closeModal('modal-costume')">&times;</button>
+      </div>
+      <form id="form-costume" onsubmit="saveCostume(event)">
+        <input type="hidden" id="costume-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tên Sản Phẩm *</label>
+            <input type="text" id="costume-name" class="form-control" placeholder="Áo Dài Múa Hoa Sen Hồng" required>
+          </div>
+          <div class="form-group">
+            <label>Mã Sản Phẩm</label>
+            <input type="text" id="costume-code" class="form-control" placeholder="Tự tạo nếu để trống">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Danh Mục</label>
+            <select id="costume-category" class="form-control">
+              <option value="1">Áo Dài Biểu Diễn</option>
+              <option value="2">Trang Phục Dân Tộc</option>
+              <option value="3">Cổ Trang & Vương Triều</option>
+              <option value="4">Hiện Đại & Flashmob</option>
+              <option value="5">Đạo Cụ Sân Khấu</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Phân Loại</label>
+            <select id="costume-type" class="form-control">
+              <option value="COSTUME">Trang Phục (Quần áo, váy)</option>
+              <option value="PROP">Đạo Cụ (Quạt, nón, kiếm...)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Kích Thước (Size)</label>
+            <select id="costume-size" class="form-control">
+              <option value="FREE">Free Size</option>
+              <optgroup label="-- Size Chữ --">
+                <option value="S">Size S</option>
+                <option value="M">Size M</option>
+                <option value="L">Size L</option>
+                <option value="XL">Size XL</option>
+                <option value="XXL">Size XXL</option>
+              </optgroup>
+              <optgroup label="-- Size Số (Trẻ em / Người lớn) --">
+                <option value="Size 1">Size 1</option>
+                <option value="Size 2">Size 2</option>
+                <option value="Size 3">Size 3</option>
+                <option value="Size 4">Size 4</option>
+                <option value="Size 5">Size 5</option>
+                <option value="Size 6">Size 6</option>
+                <option value="Size 7">Size 7</option>
+                <option value="Size 8">Size 8</option>
+                <option value="Size 9">Size 9</option>
+                <option value="Size 10">Size 10</option>
+                <option value="Size 11">Size 11</option>
+                <option value="Size 12">Size 12</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Số Lượng Nhập Kho *</label>
+            <input type="number" id="costume-qty" class="form-control" value="10" min="1" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Đơn Giá Thuê / Ngày (VNĐ) *</label>
+            <input type="number" id="costume-price" class="form-control" placeholder="120000" required>
+          </div>
+          <div class="form-group">
+            <label>Tiền Đặt Cọc (VNĐ)</label>
+            <input type="number" id="costume-deposit" class="form-control" placeholder="300000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-camera"></i> Thư Viện Ảnh Trang Phục (Có thể tải/chụp nhiều ảnh) *</label>
+          <input type="file" id="costume-file-input" accept="image/*" multiple capture="environment" style="display:none;" onchange="uploadMultipleCostumeImages(event)">
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('costume-file-input').click()">
+              <i class="fa-solid fa-images"></i> Chụp / Chọn Nhiều Ảnh Từ Điện Thoại
+            </button>
+            <span id="upload-status-text" style="font-size: 12px; color: var(--text-muted);"></span>
+          </div>
+          
+          <!-- Thư viện ảnh xem trước & Chọn ảnh đại diện -->
+          <div id="costume-gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 10px;">
+            <!-- Render Dynamic Image Thumbnails -->
+          </div>
+          
+          <input type="hidden" id="costume-image">
+        </div>
+
+        <div class="form-group">
+          <label>Mô Tả Sản Phẩm</label>
+          <textarea id="costume-desc" class="form-control" rows="2" placeholder="Chất liệu lụa tơ tằm, đính đá sang trọng..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin
+          </button>
+          <button type="button" id="btn-delete-costume" class="btn btn-danger" style="display: none;" onclick="deleteCostumeFromModal()">
+            <i class="fa-solid fa-trash"></i> Xóa Mẫu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal Tạo Đơn Thuê -->
+  <div id="modal-rental" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 750px;">
+      <div class="modal-header">
+        <h3>Tạo Đơn Thuê Trang Phục & Đạo Cụ</h3>
+        <button class="modal-close" onclick="closeModal('modal-rental')">&times;</button>
+      </div>
+      <form id="form-rental" onsubmit="createRentalOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tên Khách Hàng / Đoàn Diễn *</label>
+            <input type="text" id="rental-cust-name" class="form-control" placeholder="Đoàn Múa Trường THPT Chuyên" required>
+          </div>
+          <div class="form-group">
+            <label>Số Điện Thoại Liên Hệ *</label>
+            <input type="tel" id="rental-cust-phone" class="form-control" placeholder="0988xxxxxx" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ngày Nhận Đồ *</label>
+            <input type="date" id="rental-start-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Ngày Trả Đồ *</label>
+            <input type="date" id="rental-end-date" class="form-control" required>
+          </div>
+        </div>
+
+        <!-- Dynamic Items Picker -->
+        <div class="form-group">
+          <label>Chọn Trang Phục & Đạo Cụ Thuê *</label>
+          <div id="rental-items-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+            <!-- Dynamic Selected Items -->
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addRentalItemRow()">
+            <i class="fa-solid fa-plus"></i> Thêm Món Đồ
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Ghi Chú Đơn Thuê</label>
+          <textarea id="rental-notes" class="form-control" rows="2" placeholder="Giao đồ lúc 8h sáng, bao gồm túi đựng..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-check"></i> Xác Nhận Tạo Đơn Thuê
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Modal Xem Chi Tiết Trang Phục Cho Khách Hàng (Gallery Showcase) -->
+  <div id="modal-costume-detail" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 720px; padding: 24px;">
+      <div class="modal-header">
+        <h3 id="detail-costume-name">Chi Tiết Trang Phục Biểu Diễn</h3>
+        <button class="modal-close" onclick="closeModal('modal-costume-detail')">&times;</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Left: Image Gallery & Cover Preview -->
+        <div>
+          <div style="position: relative; border-radius: 12px; overflow: hidden; height: 260px; background: #f1f5f9; border: 1px solid var(--border); margin-bottom: 10px;">
+            <img id="detail-main-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+            <span id="detail-size-badge" class="costume-badge-size">FREE</span>
+          </div>
+
+          <!-- Gallery Thumbnails Strip -->
+          <div id="detail-gallery-thumbs" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;">
+            <!-- Render Dynamic Thumbnails -->
+          </div>
+        </div>
+
+        <!-- Right: Info Details & Hotline Action -->
+        <div style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span id="detail-code" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Mã: TP-1001</span>
+              <span id="detail-status" class="badge badge-success">Sẵn có</span>
+            </div>
+
+            <h3 id="detail-title" style="font-size: 18px; font-weight: 800; color: var(--text-heading); margin-bottom: 12px;">Tên Sản Phẩm</h3>
+
+            <div style="background: #f8fafc; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 16px;">
+              <div style="font-size: 12px; color: var(--text-muted);">Giá thuê theo ngày:</div>
+              <div id="detail-price" style="font-size: 22px; font-weight: 900; color: var(--primary);">0 đ <small style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/ ngày</small></div>
+              
+              <div style="margin-top: 8px; pt-8px; border-top: 1px dashed var(--border); display: flex; justify-content: space-between; font-size: 12px;">
+                <span>Tiền cọc giữ đồ:</span>
+                <strong id="detail-deposit" style="color: var(--text-heading);">0 đ</strong>
+              </div>
+              <div style="margin-top: 4px; display: flex; justify-content: space-between; font-size: 12px;">
+                <span>Số lượng sẵn có trong kho:</span>
+                <strong id="detail-qty" style="color: var(--success);">10 bộ</strong>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+              <h5 style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Mô Tả & Thông Tin Sân Khấu:</h5>
+              <p id="detail-desc" style="font-size: 13px; color: var(--text-body); line-height: 1.5; white-space: pre-line; max-height: 100px; overflow-y: auto;">Chưa có mô tả.</p>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="tel:0988000000" class="btn btn-primary" style="justify-content: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 700;">
+              <i class="fa-solid fa-phone"></i> Gọi / Zalo Thuê Đồ Ngay: 0988.xxx.xxx
+            </a>
+            <p style="font-size: 11px; text-align: center; color: var(--text-muted);">📍 Cửa hàng Trang Phục Biểu Diễn Thúy Hà - Phục vụ các đoàn nghệ thuật & cá nhân</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- Script Imports -->
+  <script src="js/app.js"></script>
+  <script src="js/costumes.js"></script>
+  <script src="js/rentals.js"></script>
+  <script src="js/customers.js"></script>
+  <script src="js/reports.js"></script>
+</body>
+</html>
+

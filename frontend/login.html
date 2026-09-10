@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập & Đăng Ký - Trang Phục Biểu Diễn Thúy Hà</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #ffffff;
+    }
+
+    @media (max-width: 850px) {
+      body {
+        grid-template-columns: 1fr;
+      }
+      .login-hero {
+        display: none;
+      }
+    }
+
+    .login-hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem;
+      color: #ffffff;
+      text-align: center;
+      position: relative;
+    }
+
+    .login-hero-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      width: 90px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .login-hero h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 0.8rem;
+      line-height: 1.2;
+    }
+
+    .login-hero p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+      max-width: 420px;
+      line-height: 1.5;
+    }
+
+    .login-hero-features {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .login-hero-features .feat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 10px 18px;
+      border-radius: 12px;
+    }
+
+    .auth-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      background: #f8fafc;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      padding: 36px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .auth-logo-sm {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .auth-logo-sm i {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #6366f1, #0ea5e9);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 1.3rem;
+    }
+
+    .auth-logo-sm h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .auth-tab.active {
+      background: #ffffff;
+      color: #6366f1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 14px;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Hero Banner -->
+  <div class="login-hero">
+    <div class="login-hero-icon">
+      <i class="fa-solid fa-masks-theater"></i>
+    </div>
+    <h1>TPBD THÚY HÀ</h1>
+    <p>Cửa Hàng Cho Thuê Trang Phục Biểu Diễn & Đạo Cụ Sân Khấu Thúy Hà</p>
+
+    <div class="login-hero-features">
+      <div class="feat"><i class="fa-solid fa-shirt"></i> Trang Phục Múa, Độc Đáo & Đa Dạng</div>
+      <div class="feat"><i class="fa-solid fa-receipt"></i> Tự Động Tính Tiền Thuê, Cọc & Ngày Trả Đồ</div>
+      <div class="feat"><i class="fa-solid fa-boxes-stacked"></i> Quản Lý Tồn Kho Rõ Ràng & Chuẩn Xác</div>
+    </div>
+  </div>
+
+  <!-- Right Auth Form -->
+  <div class="auth-section">
+    <div class="auth-card">
+      <div class="auth-logo-sm">
+        <i class="fa-solid fa-masks-theater"></i>
+        <h2>TPBD THÚY HÀ</h2>
+      </div>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')">Đăng Nhập</div>
+        <div class="auth-tab" onclick="switchAuthTab('register')">Đăng Ký</div>
+      </div>
+
+      <!-- Form Đăng Nhập -->
+      <form id="form-login" class="auth-form active" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> Tên Đăng Nhập / Email / SĐT</label>
+          <input type="text" id="login-identifier" class="form-control" placeholder="admin" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-lock"></i> Mật khẩu</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-btn">
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Hệ Thống
+        </button>
+
+        <a href="/" style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600;">
+          <i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ xem sản phẩm
+        </a>
+      </form>
+
+      <!-- Form Đăng Ký -->
+      <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> Họ và Tên</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="Nguyễn Văn A" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-envelope"></i> Địa chỉ Email</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="user@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-phone"></i> Số điện thoại</label>
+          <input type="tel" id="reg-phone" class="form-control" placeholder="0901234567">
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-lock"></i> Mật khẩu</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-btn">
+          <i class="fa-solid fa-user-plus"></i> Đăng Ký Tài Khoản
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script>
+    function switchAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+      if (tab === 'login') {
+        document.querySelectorAll('.auth-tab')[0].classList.add('active');
+        document.getElementById('form-login').classList.add('active');
+      } else {
+        document.querySelectorAll('.auth-tab')[1].classList.add('active');
+        document.getElementById('form-register').classList.add('active');
+      }
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${msg}`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || 'Đăng nhập thất bại');
+
+        localStorage.setItem('tpbd_token', data.token);
+        localStorage.setItem('tpbd_user', JSON.stringify(data.user));
+        showToast('Đăng nhập thành công! Đang chuyển hướng...');
+        setTimeout(() => window.location.href = '/', 1000);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || 'Đăng ký thất bại');
+
+        showToast('Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay.');
+        switchAuthTab('login');
+        document.getElementById('login-identifier').value = email;
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
