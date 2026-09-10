@@ -6,13 +6,20 @@ let pool;
 
 function getPool() {
   if (!pool) {
-    pool = new Pool({
-      user: process.env.PG_USER || 'postgres',
-      host: process.env.PG_HOST || 'localhost',
-      database: process.env.PG_DATABASE || 'tpbd_db',
-      password: process.env.PG_PASSWORD || '1',
-      port: parseInt(process.env.PG_PORT || '5432', 10),
-    });
+    if (process.env.DATABASE_URL) {
+      pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+      });
+    } else {
+      pool = new Pool({
+        user: process.env.PG_USER || 'postgres',
+        host: process.env.PG_HOST || 'localhost',
+        database: process.env.PG_DATABASE || 'tpbd_db',
+        password: process.env.PG_PASSWORD || '1',
+        port: parseInt(process.env.PG_PORT || '5432', 10),
+      });
+    }
   }
   return pool;
 }
