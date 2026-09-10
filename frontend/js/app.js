@@ -76,6 +76,7 @@ async function checkAuth() {
 
 function updateUserUI() {
   const userProfileArea = document.getElementById('user-profile-area');
+  const mobileHeaderUser = document.getElementById('mobile-header-user');
   const adminElements = document.querySelectorAll('.admin-only');
 
   if (currentUser) {
@@ -94,12 +95,26 @@ function updateUserUI() {
         </button>
       `;
     }
+    if (mobileHeaderUser) {
+      mobileHeaderUser.innerHTML = `
+        <button class="btn btn-secondary btn-sm" onclick="logout()" title="Đăng xuất">
+          <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+        </button>
+      `;
+    }
     adminElements.forEach(el => el.style.display = '');
   } else {
     // Mode Khách Xem Trang Phục (Guest)
     if (userProfileArea) {
       userProfileArea.innerHTML = `
         <a href="login.html" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; text-decoration: none;">
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Quản Lý
+        </a>
+      `;
+    }
+    if (mobileHeaderUser) {
+      mobileHeaderUser.innerHTML = `
+        <a href="login.html" class="btn btn-primary btn-sm" style="text-decoration: none;">
           <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Quản Lý
         </a>
       `;
