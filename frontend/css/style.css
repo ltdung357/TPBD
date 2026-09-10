@@ -687,7 +687,7 @@ body {
 .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
 /* Responsive Mobile Layout */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sidebar {
     display: none !important;
   }
