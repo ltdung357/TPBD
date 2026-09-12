@@ -61,6 +61,22 @@ router.post('/categories', verifyToken, async (req, res) => {
   }
 });
 
+// Xóa danh mục
+router.delete('/categories/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    await pool.query('UPDATE costumes SET category_id = NULL WHERE category_id = $1', [id]);
+    const result = await pool.query('DELETE FROM costume_categories WHERE id = $1 RETURNING *', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Danh mục không tồn tại!' });
+    }
+    res.json({ message: 'Đã xóa danh mục thành công!', category: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
 // Lấy danh sách trang phục & đạo cụ (Filter / Search)
 router.get('/', async (req, res) => {
   const { search, category_id, type, size, status } = req.query;

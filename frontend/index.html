@@ -304,13 +304,19 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Danh Mục</label>
-            <select id="costume-category" class="form-control">
-              <option value="1">Áo Dài Biểu Diễn</option>
-              <option value="2">Trang Phục Dân Tộc</option>
-              <option value="3">Cổ Trang & Vương Triều</option>
-              <option value="4">Hiện Đại & Flashmob</option>
-              <option value="5">Đạo Cụ Sân Khấu</option>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="margin-bottom: 0;">Danh Mục *</label>
+              <div style="display: flex; gap: 6px;" class="admin-only">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="promptAddCategory()" style="padding: 2px 8px; font-size: 11px; height: auto;" title="Thêm danh mục mới">
+                  <i class="fa-solid fa-plus"></i> Thêm mới
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="deleteSelectedCategory()" style="padding: 2px 8px; font-size: 11px; height: auto; color: #ef4444;" title="Xóa danh mục đang chọn">
+                  <i class="fa-solid fa-trash-can"></i> Xóa
+                </button>
+              </div>
+            </div>
+            <select id="costume-category" class="form-control" onchange="handleCategorySelectChange(this)">
+              <!-- Nạp động từ Database -->
             </select>
           </div>
           <div class="form-group">
@@ -515,6 +521,32 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Thêm Danh Mục Mới -->
+  <div id="modal-add-category" class="modal-overlay">
+    <div class="modal-content glass-card" style="max-width: 420px; border-radius: 16px;">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;">
+        <h3 style="font-size: 1.1rem; color: var(--text-heading); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-folder-plus" style="color: var(--primary);"></i> Thêm Danh Mục Mới
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-add-category')">&times;</button>
+      </div>
+      <form onsubmit="saveNewCategory(event)">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label>Tên Danh Mục Mới *</label>
+          <input type="text" id="new-category-name" class="form-control" placeholder="Ví dụ: Trang Phục Múa Trẻ Em" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Mô Tả (Không bắt buộc)</label>
+          <input type="text" id="new-category-desc" class="form-control" placeholder="Mô tả ngắn gọn...">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-category')">Hủy</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Lưu Danh Mục</button>
+        </div>
+      </form>
     </div>
   </div>
 

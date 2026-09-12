@@ -1,6 +1,8 @@
 // ====== COSTUMES & PROPS MODULE ======
 
 let costumesList = [];
+let categoriesList = [];
+let lastSelectedCategoryId = null;
 let filteredCategory = 'ALL';
 let filteredSize = 'ALL';
 let currentFormImages = []; // Danh sách tất cả các ảnh đã tải lên của sản phẩm hiện tại
@@ -8,6 +10,7 @@ let currentCoverImage = ''; // Đường dẫn ảnh đại diện được ch�
 
 async function loadCostumes(searchQuery = '') {
   try {
+    await loadCategories();
     let url = `/api/costumes?search=${encodeURIComponent(searchQuery)}`;
     const res = await fetch(url);
     costumesList = await res.json();
@@ -15,6 +18,155 @@ async function loadCostumes(searchQuery = '') {
     applyCostumeFilters();
   } catch (err) {
     showToast('Lỗi khi tải danh sách trang phục: ' + err.message, 'error');
+  }
+}
+
+// ====== QUẢN LÝ DANH MỤC ======
+async function loadCategories() {
+  try {
+    const res = await fetch('/api/costumes/categories');
+    if (!res.ok) return;
+    categoriesList = await res.json();
+    renderCategoryDropdown();
+    renderCategoryFilterButtons();
+  } catch (err) {
+    console.error('Lỗi nạp danh mục:', err);
+  }
+}
+
+function renderCategoryDropdown(selectTargetId = null) {
+  const selectEl = document.getElementById('costume-category');
+  if (!selectEl) return;
+
+  const currentVal = selectTargetId || selectEl.value || (categoriesList[0] ? categoriesList[0].id : '');
+
+  let html = categoriesList.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    html += `<option value="__ADD_NEW__" style="font-weight: 700; color: var(--primary);">➕ Thêm danh mục mới...</option>`;
+  }
+
+  selectEl.innerHTML = html;
+
+  if (currentVal && Array.from(selectEl.options).some(opt => String(opt.value) === String(currentVal))) {
+    selectEl.value = currentVal;
+    lastSelectedCategoryId = currentVal;
+  } else if (categoriesList.length > 0) {
+    selectEl.value = categoriesList[0].id;
+    lastSelectedCategoryId = categoriesList[0].id;
+  }
+}
+
+function renderCategoryFilterButtons() {
+  const container = document.getElementById('category-filter-buttons');
+  if (!container) return;
+
+  let html = `<button class="btn btn-sm ${filteredCategory === 'ALL' ? 'btn-primary active' : 'btn-secondary'} filter-cat-btn" onclick="filterCostumesByCategory('ALL', this)">Tất Cả</button>`;
+
+  html += categoriesList.map(cat => {
+    const isActive = (String(filteredCategory) === String(cat.id));
+    return `<button class="btn btn-sm ${isActive ? 'btn-primary active' : 'btn-secondary'} filter-cat-btn" onclick="filterCostumesByCategory('${cat.id}', this)">${cat.name}</button>`;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+function handleCategorySelectChange(selectEl) {
+  if (selectEl.value === '__ADD_NEW__') {
+    if (lastSelectedCategoryId) {
+      selectEl.value = lastSelectedCategoryId;
+    }
+    promptAddCategory();
+  } else {
+    lastSelectedCategoryId = selectEl.value;
+  }
+}
+
+function promptAddCategory() {
+  if (!currentUser) {
+    showToast('Vui lòng đăng nhập quyền Admin để thêm danh mục!', 'error');
+    return;
+  }
+  document.getElementById('new-category-name').value = '';
+  document.getElementById('new-category-desc').value = '';
+  openModal('modal-add-category');
+  setTimeout(() => {
+    const input = document.getElementById('new-category-name');
+    if (input) input.focus();
+  }, 100);
+}
+
+async function saveNewCategory(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('tpbd_token');
+  const name = document.getElementById('new-category-name').value.trim();
+  const description = document.getElementById('new-category-desc').value.trim();
+
+  if (!name) {
+    showToast('Vui lòng nhập tên danh mục!', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/costumes/categories', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ name, description, type: 'COSTUME' })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Tạo danh mục thất bại!');
+
+    showToast('Thêm danh mục mới thành công!');
+    closeModal('modal-add-category');
+
+    await loadCategories();
+    renderCategoryDropdown(data.id);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function deleteSelectedCategory() {
+  if (!currentUser) {
+    showToast('Vui lòng đăng nhập quyền Admin để xóa danh mục!', 'error');
+    return;
+  }
+
+  const selectEl = document.getElementById('costume-category');
+  const catId = selectEl ? selectEl.value : null;
+
+  if (!catId || catId === '__ADD_NEW__') {
+    showToast('Vui lòng chọn 1 danh mục để xóa!', 'error');
+    return;
+  }
+
+  const cat = categoriesList.find(c => String(c.id) === String(catId));
+  const catName = cat ? cat.name : 'danh mục này';
+
+  if (!confirm(`Bạn có chắc chắn muốn xóa danh mục "${catName}" không? Các sản phẩm thuộc danh mục này sẽ giữ nguyên.`)) {
+    return;
+  }
+
+  const token = localStorage.getItem('tpbd_token');
+  try {
+    const res = await fetch(`/api/costumes/categories/${catId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Xóa danh mục thất bại!');
+
+    showToast(`Đã xóa danh mục "${catName}" thành công!`);
+    await loadCategories();
+    loadCostumes();
+  } catch (err) {
+    showToast(err.message, 'error');
   }
 }
 
@@ -158,6 +310,7 @@ function openCostumeDetail(id) {
 
 function openCostumeModalForCreate() {
   resetCostumeForm();
+  renderCategoryDropdown();
   document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
   openModal('modal-costume');
 }
@@ -319,10 +472,14 @@ function editCostume(id) {
   const item = costumesList.find(c => c.id === id);
   if (!item) return;
 
+  renderCategoryDropdown(item.category_id);
+
   document.getElementById('costume-id').value = item.id;
   document.getElementById('costume-name').value = item.name;
   document.getElementById('costume-code').value = item.code;
-  document.getElementById('costume-category').value = item.category_id || 1;
+  if (document.getElementById('costume-category')) {
+    document.getElementById('costume-category').value = item.category_id || (categoriesList[0] ? categoriesList[0].id : 1);
+  }
   document.getElementById('costume-type').value = item.type || 'COSTUME';
   document.getElementById('costume-size').value = item.size || 'FREE';
   document.getElementById('costume-qty').value = item.total_qty;
