@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const { verifyToken, verifyAdmin } = require('../middleware/auth');
+const { verifyToken } = require('./auth');
 
 const envPath = path.join(__dirname, '..', '..', '.env');
 
@@ -18,13 +18,13 @@ function getDeployHook() {
 }
 
 // GET /api/system/deploy-status
-router.get('/deploy-status', verifyToken, verifyAdmin, (req, res) => {
+router.get('/deploy-status', verifyToken, (req, res) => {
   const hook = getDeployHook();
   res.json({ configured: !!hook });
 });
 
 // POST /api/system/save-deploy-hook
-router.post('/save-deploy-hook', verifyToken, verifyAdmin, (req, res) => {
+router.post('/save-deploy-hook', verifyToken, (req, res) => {
   const { deploy_hook } = req.body;
   if (!deploy_hook || !deploy_hook.startsWith('http')) {
     return res.status(400).json({ message: 'URL Deploy Hook không hợp lệ!' });
@@ -49,7 +49,7 @@ router.post('/save-deploy-hook', verifyToken, verifyAdmin, (req, res) => {
 });
 
 // POST /api/system/trigger-deploy
-router.post('/trigger-deploy', verifyToken, verifyAdmin, (req, res) => {
+router.post('/trigger-deploy', verifyToken, (req, res) => {
   const hook = getDeployHook();
   if (!hook) {
     return res.status(400).json({ 
