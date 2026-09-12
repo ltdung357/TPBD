@@ -92,8 +92,10 @@ const initDatabase = async () => {
         name VARCHAR(255) NOT NULL,
         type VARCHAR(50) DEFAULT 'COSTUME',
         description TEXT,
+        is_default BOOLEAN DEFAULT false,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE costume_categories ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT false;
 
       CREATE TABLE IF NOT EXISTS costumes (
         id SERIAL PRIMARY KEY,
@@ -183,6 +185,78 @@ const initDatabase = async () => {
         total_orders INTEGER DEFAULT 0,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS costume_types (
+        id SERIAL PRIMARY KEY,
+        code VARCHAR(100) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        is_default BOOLEAN DEFAULT false,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS costume_sizes (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) UNIQUE NOT NULL,
+        category_label VARCHAR(100) DEFAULT 'Mặc định',
+        is_default BOOLEAN DEFAULT false,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
+    // Đảm bảo 5 danh mục mặc định ban đầu luôn tồn tại
+    await pool.query(`
+      INSERT INTO costume_categories (id, name, type, description, is_default) VALUES
+      (1, 'Áo Dài Biểu Diễn & Cách Tân', 'COSTUME', 'Áo dài múa, áo dài hội nghị, biểu diễn văn nghệ', true),
+      (2, 'Trang Phục Dân Tộc Việt Nam', 'COSTUME', 'Mèo, HMông, Tây Bắc, Thái, Chăm, Khmer, Tây Nguyên', true),
+      (3, 'Trang Phục Cổ Trang & Vương Triều', 'COSTUME', 'Vua chúa, Hoàng hậu, Quan lại, Cổ phục Việt', true),
+      (4, 'Trang Phục Hiện Đại & Flashmob', 'COSTUME', 'Nhạc trẻ, Hip-hop, Cheerleading, Văn nghệ công ty', true),
+      (5, 'Đạo Cụ Sân Khấu & Múa', 'PROP', 'Quạt múa, Nón lá, Kiếm, Khèn, Hoa Sen, Cờ hội', true)
+      ON CONFLICT (id) DO UPDATE SET is_default = true;
+      SELECT setval('costume_categories_id_seq', (SELECT GREATEST(MAX(id), 5) FROM costume_categories));
+    `);
+
+    // Seed costume_types & costume_sizes nếu trống
+    const typeCheck = await pool.query(`SELECT COUNT(*) FROM costume_types`);
+    if (parseInt(typeCheck.rows[0].count, 10) === 0) {
+      await pool.query(`
+        INSERT INTO costume_types (code, name, is_default) VALUES
+        ('COSTUME', 'Trang Phục (Quần áo, váy)', true),
+        ('PROP', 'Đạo Cụ (Quạt, nón, kiếm...)', true);
+      `);
+    }
+
+    const sizeCheck = await pool.query(`SELECT COUNT(*) FROM costume_sizes`);
+    if (parseInt(sizeCheck.rows[0].count, 10) === 0) {
+      await pool.query(`
+        INSERT INTO costume_sizes (name, category_label, is_default) VALUES
+        ('Free Size', 'Free Size', true),
+        ('XXS', 'Size Chữ', true),
+        ('XS', 'Size Chữ', true),
+        ('S', 'Size Chữ', true),
+        ('M', 'Size Chữ', true),
+        ('L', 'Size Chữ', true),
+        ('XL', 'Size Chữ', true),
+        ('XXL', 'Size Chữ', true),
+        ('Size 1', 'Size Số', true),
+        ('Size 2', 'Size Số', true),
+        ('Size 3', 'Size Số', true),
+        ('Size 4', 'Size Số', true),
+        ('Size 5', 'Size Số', true),
+        ('Size 6', 'Size Số', true),
+        ('Size 7', 'Size Số', true),
+        ('Size 8', 'Size Số', true),
+        ('Size 9', 'Size Số', true),
+        ('Size 10', 'Size Số', true),
+        ('Size 11', 'Size Số', true),
+        ('Size 12', 'Size Số', true);
+      `);
+    }
+
+    // Đảm bảo XXS và XS luôn có trong costume_sizes
+    await pool.query(`
+      INSERT INTO costume_sizes (name, category_label, is_default)
+      VALUES ('XXS', 'Size Chữ', true), ('XS', 'Size Chữ', true)
+      ON CONFLICT (name) DO NOTHING;
     `);
 
     console.log('✅ [PostgreSQL] Các bảng dữ liệu hệ thống TPBD đã kiểm tra / khởi tạo thành công.');

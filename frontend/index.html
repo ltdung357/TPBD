@@ -61,6 +61,29 @@
         </li>
       </ul>
 
+      <!-- Store Info Card in Sidebar -->
+      <div style="margin: 16px 12px 10px 12px; padding: 12px; background: rgba(79, 70, 229, 0.05); border: 1px solid rgba(79, 70, 229, 0.15); border-radius: 12px; font-size: 12px; line-height: 1.5; color: var(--text-body);">
+        <div style="font-weight: 800; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 12px; text-transform: uppercase;">
+          <i class="fa-solid fa-store"></i> Thúy Hà
+        </div>
+        <div style="margin-bottom: 4px; display: flex; align-items: flex-start; gap: 6px;">
+          <i class="fa-solid fa-location-dot" style="color: var(--primary); margin-top: 3px; flex-shrink: 0;"></i>
+          <span>Khối Quyết Thắng, TX. Thái Hòa, Nghệ An</span>
+        </div>
+        <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-phone" style="color: var(--primary); flex-shrink: 0;"></i>
+          <a href="tel:0394378999" style="color: inherit; text-decoration: none; font-weight: 700;">0394.378.999</a> - <a href="tel:0962384661" style="color: inherit; text-decoration: none; font-weight: 700;">0962.384.661</a>
+        </div>
+        <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-brands fa-facebook" style="color: #1877f2; flex-shrink: 0;"></i>
+          <span>Ha Minh - Mai Diệu Thúy</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-credit-card" style="color: #10b981; flex-shrink: 0;"></i>
+          <span>BIDV: <strong>5130268161</strong> (Mai Diệu Thúy)</span>
+        </div>
+      </div>
+
       <div class="sidebar-user" id="user-profile-area">
         <!-- Rendered dynamically by updateUserUI() -->
       </div>
@@ -81,7 +104,7 @@
           </div>
 
           <div style="display: flex; align-items: center; gap: 8px; background: var(--primary-light); color: var(--primary); padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700;">
-            <i class="fa-solid fa-phone"></i> Hotline / Zalo: 0988.xxx.xxx
+            <i class="fa-solid fa-phone"></i> Hotline / Zalo: 0394.378.999 - 0962.384.661
           </div>
 
           <div id="mobile-header-user" class="mobile-only-user"></div>
@@ -171,38 +194,22 @@
           </div>
 
           <!-- Filter Bar -->
-          <div class="glass-panel" style="padding: 14px 20px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="category-filter-buttons">
-              <button class="btn btn-sm btn-primary filter-cat-btn active" onclick="filterCostumesByCategory('ALL', this)">Tất Cả</button>
-              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('1', this)">Áo Dài Biểu Diễn</button>
-              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('2', this)">Trang Phục Dân Tộc</button>
-              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('3', this)">Cổ Trang & Vương Triều</button>
-              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('4', this)">Hiện Đại & Flashmob</button>
-              <button class="btn btn-sm btn-secondary filter-cat-btn" onclick="filterCostumesByCategory('5', this)">Đạo Cụ Sân Khấu</button>
+          <div class="glass-panel" style="padding: 12px 20px; margin-bottom: 20px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-layer-group" style="color: var(--primary);"></i> Lọc Danh Mục:
+              </span>
+              <select id="filter-category-select" class="form-control" style="width: auto; min-width: 220px; padding: 7px 12px; font-size: 13px; font-weight: 600;" onchange="filterCostumesByCategory(this.value)">
+                <option value="ALL">Tất cả danh mục</option>
+              </select>
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Lọc Size:</span>
-              <select id="filter-size-select" class="form-control" style="width: auto; padding: 5px 10px; font-size: 12px;" onchange="filterCostumesBySize(this.value)">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-ruler-combined" style="color: var(--primary);"></i> Lọc Size:
+              </span>
+              <select id="filter-size-select" class="form-control" style="width: auto; min-width: 140px; padding: 7px 12px; font-size: 13px; font-weight: 600;" onchange="filterCostumesBySize(this.value)">
                 <option value="ALL">Tất cả size</option>
-                <option value="FREE">Free Size</option>
-                <option value="S">Size S</option>
-                <option value="M">Size M</option>
-                <option value="L">Size L</option>
-                <option value="XL">Size XL</option>
-                <option value="XXL">Size XXL</option>
-                <option value="Size 1">Size 1</option>
-                <option value="Size 2">Size 2</option>
-                <option value="Size 3">Size 3</option>
-                <option value="Size 4">Size 4</option>
-                <option value="Size 5">Size 5</option>
-                <option value="Size 6">Size 6</option>
-                <option value="Size 7">Size 7</option>
-                <option value="Size 8">Size 8</option>
-                <option value="Size 9">Size 9</option>
-                <option value="Size 10">Size 10</option>
-                <option value="Size 11">Size 11</option>
-                <option value="Size 12">Size 12</option>
               </select>
             </div>
           </div>
@@ -304,26 +311,15 @@
 
         <div class="form-row">
           <div class="form-group">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label style="margin-bottom: 0;">Danh Mục *</label>
-              <div style="display: flex; gap: 6px;" class="admin-only">
-                <button type="button" class="btn btn-sm btn-secondary" onclick="promptAddCategory()" style="padding: 2px 8px; font-size: 11px; height: auto;" title="Thêm danh mục mới">
-                  <i class="fa-solid fa-plus"></i> Thêm mới
-                </button>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="deleteSelectedCategory()" style="padding: 2px 8px; font-size: 11px; height: auto; color: #ef4444;" title="Xóa danh mục đang chọn">
-                  <i class="fa-solid fa-trash-can"></i> Xóa
-                </button>
-              </div>
-            </div>
+            <label>Danh Mục *</label>
             <select id="costume-category" class="form-control" onchange="handleCategorySelectChange(this)">
               <!-- Nạp động từ Database -->
             </select>
           </div>
           <div class="form-group">
             <label>Phân Loại</label>
-            <select id="costume-type" class="form-control">
-              <option value="COSTUME">Trang Phục (Quần áo, váy)</option>
-              <option value="PROP">Đạo Cụ (Quạt, nón, kiếm...)</option>
+            <select id="costume-type" class="form-control" onchange="handleTypeSelectChange(this)">
+              <!-- Nạp động từ Database -->
             </select>
           </div>
         </div>
@@ -331,29 +327,8 @@
         <div class="form-row">
           <div class="form-group">
             <label>Kích Thước (Size)</label>
-            <select id="costume-size" class="form-control">
-              <option value="FREE">Free Size</option>
-              <optgroup label="-- Size Chữ --">
-                <option value="S">Size S</option>
-                <option value="M">Size M</option>
-                <option value="L">Size L</option>
-                <option value="XL">Size XL</option>
-                <option value="XXL">Size XXL</option>
-              </optgroup>
-              <optgroup label="-- Size Số (Trẻ em / Người lớn) --">
-                <option value="Size 1">Size 1</option>
-                <option value="Size 2">Size 2</option>
-                <option value="Size 3">Size 3</option>
-                <option value="Size 4">Size 4</option>
-                <option value="Size 5">Size 5</option>
-                <option value="Size 6">Size 6</option>
-                <option value="Size 7">Size 7</option>
-                <option value="Size 8">Size 8</option>
-                <option value="Size 9">Size 9</option>
-                <option value="Size 10">Size 10</option>
-                <option value="Size 11">Size 11</option>
-                <option value="Size 12">Size 12</option>
-              </optgroup>
+            <select id="costume-size" class="form-control" onchange="handleSizeSelectChange(this)">
+              <!-- Nạp động từ Database -->
             </select>
           </div>
           <div class="form-group">
@@ -362,23 +337,22 @@
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Đơn Giá Thuê / Ngày (VNĐ) *</label>
-            <input type="number" id="costume-price" class="form-control" placeholder="120000" required>
-          </div>
-          <div class="form-group">
-            <label>Tiền Đặt Cọc (VNĐ)</label>
-            <input type="number" id="costume-deposit" class="form-control" placeholder="300000">
-          </div>
+        <div class="form-group">
+          <label>Đơn Giá Thuê / Ngày (VNĐ) *</label>
+          <input type="number" id="costume-price" class="form-control" placeholder="120000" required>
         </div>
 
         <div class="form-group">
-          <label><i class="fa-solid fa-camera"></i> Thư Viện Ảnh Trang Phục (Có thể tải/chụp nhiều ảnh) *</label>
-          <input type="file" id="costume-file-input" accept="image/*" multiple capture="environment" style="display:none;" onchange="uploadMultipleCostumeImages(event)">
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('costume-file-input').click()">
-              <i class="fa-solid fa-images"></i> Chụp / Chọn Nhiều Ảnh Từ Điện Thoại
+          <label><i class="fa-solid fa-camera"></i> Thư Viện Ảnh Trang Phục (Có thể tải / chụp nhiều ảnh) *</label>
+          <input type="file" id="costume-file-input" accept="image/*" multiple style="display:none;" onchange="uploadMultipleCostumeImages(event)">
+          <input type="file" id="costume-file-input-camera" accept="image/*" capture="environment" style="display:none;" onchange="uploadMultipleCostumeImages(event)">
+          
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('costume-file-input').click()" style="display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-images" style="color: var(--primary);"></i> 🖼️ Chọn Ảnh Từ Thư Viện
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('costume-file-input-camera').click()" style="display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-camera" style="color: #10b981;"></i> 📷 Chụp Ảnh Trực Tiếp
             </button>
             <span id="upload-status-text" style="font-size: 12px; color: var(--text-muted);"></span>
           </div>
@@ -423,7 +397,7 @@
           </div>
           <div class="form-group">
             <label>Số Điện Thoại Liên Hệ *</label>
-            <input type="tel" id="rental-cust-phone" class="form-control" placeholder="0988xxxxxx" required>
+            <input type="tel" id="rental-cust-phone" class="form-control" placeholder="0394378999" required>
           </div>
         </div>
 
@@ -498,10 +472,6 @@
               <div id="detail-price" style="font-size: 22px; font-weight: 900; color: var(--primary);">0 đ <small style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/ ngày</small></div>
               
               <div style="margin-top: 8px; pt-8px; border-top: 1px dashed var(--border); display: flex; justify-content: space-between; font-size: 12px;">
-                <span>Tiền cọc giữ đồ:</span>
-                <strong id="detail-deposit" style="color: var(--text-heading);">0 đ</strong>
-              </div>
-              <div style="margin-top: 4px; display: flex; justify-content: space-between; font-size: 12px;">
                 <span>Số lượng sẵn có trong kho:</span>
                 <strong id="detail-qty" style="color: var(--success);">10 bộ</strong>
               </div>
@@ -513,40 +483,158 @@
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="tel:0988000000" class="btn btn-primary" style="justify-content: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 700;">
-              <i class="fa-solid fa-phone"></i> Gọi / Zalo Thuê Đồ Ngay: 0988.xxx.xxx
+          <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px solid var(--border);">
+            <a href="tel:0394378999" class="btn btn-primary" style="justify-content: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 700;">
+              <i class="fa-solid fa-phone"></i> Gọi / Zalo Thuê Đồ: 0394.378.999 - 0962.384.661
             </a>
-            <p style="font-size: 11px; text-align: center; color: var(--text-muted);">📍 Cửa hàng Trang Phục Biểu Diễn Thúy Hà - Phục vụ các đoàn nghệ thuật & cá nhân</p>
+            <div style="font-size: 12px; color: var(--text-body); display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px;">
+              <div>📍 <strong>Địa chỉ:</strong> Khối Quyết Thắng - TX. Thái Hòa - Nghệ An</div>
+              <div>📘 <strong>Facebook:</strong> Ha Minh - Mai Diệu Thúy</div>
+              <div>💳 <strong>TK Ngân hàng:</strong> BIDV 5130268161 (Chủ TK: Mai Diệu Thúy)</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Thêm Danh Mục Mới -->
-  <div id="modal-add-category" class="modal-overlay">
-    <div class="modal-content glass-card" style="max-width: 420px; border-radius: 16px;">
-      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;">
-        <h3 style="font-size: 1.1rem; color: var(--text-heading); display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-folder-plus" style="color: var(--primary);"></i> Thêm Danh Mục Mới
+  <!-- Modal Quản Lý & Thêm Danh Mục Mới (Sub-modal) -->
+  <div id="modal-add-category" class="modal-overlay sub-modal">
+    <div class="modal-box glass-card" style="max-width: 500px; padding: 26px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px;">
+        <h3 style="display: flex; align-items: center; gap: 12px; font-size: 1.15rem; font-weight: 800; color: var(--text-heading);">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 12px; font-size: 17px;">
+            <i class="fa-solid fa-folder-plus"></i>
+          </span>
+          Quản Lý Danh Mục
         </h3>
         <button class="modal-close" onclick="closeModal('modal-add-category')">&times;</button>
       </div>
-      <form onsubmit="saveNewCategory(event)">
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label>Tên Danh Mục Mới *</label>
-          <input type="text" id="new-category-name" class="form-control" placeholder="Ví dụ: Trang Phục Múa Trẻ Em" required>
+
+      <!-- Form Thêm Mới -->
+      <form onsubmit="saveNewCategory(event)" style="margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px dashed var(--border);">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Tên Danh Mục Mới *</label>
+          <input type="text" id="new-category-name" class="form-control" placeholder="Ví dụ: Trang Phục Múa Trẻ Em, Áo Dài..." required style="padding: 10px 14px; font-size: 13px;">
         </div>
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label>Mô Tả (Không bắt buộc)</label>
-          <input type="text" id="new-category-desc" class="form-control" placeholder="Mô tả ngắn gọn...">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Mô Tả <small style="font-weight: 400; color: var(--text-muted);">(Không bắt buộc)</small></label>
+          <input type="text" id="new-category-desc" class="form-control" placeholder="Mô tả ngắn gọn về danh mục..." style="padding: 10px 14px; font-size: 13px;">
         </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-category')">Hủy</button>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Lưu Danh Mục</button>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-plus"></i> Thêm Danh Mục
+          </button>
         </div>
       </form>
+
+      <!-- Danh sách Danh Mục Hiện Có -->
+      <div>
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-list-ul" style="color: var(--primary);"></i> Danh Sách Danh Mục Hiện Có:
+        </h4>
+        <div id="existing-categories-list" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+          <!-- Nạp danh sách danh mục và nút xóa -->
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-category')" style="padding: 8px 18px; font-size: 13px;">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Quản Lý Phân Loại (Sub-modal) -->
+  <div id="modal-manage-type" class="modal-overlay sub-modal">
+    <div class="modal-box glass-card" style="max-width: 500px; padding: 26px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px;">
+        <h3 style="display: flex; align-items: center; gap: 12px; font-size: 1.15rem; font-weight: 800; color: var(--text-heading);">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 12px; font-size: 17px;">
+            <i class="fa-solid fa-tags"></i>
+          </span>
+          Quản Lý Phân Loại
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-manage-type')">&times;</button>
+      </div>
+
+      <!-- Form Thêm Mới -->
+      <form onsubmit="saveNewType(event)" style="margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px dashed var(--border);">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Tên Phân Loại Mới *</label>
+          <input type="text" id="new-type-name" class="form-control" placeholder="Ví dụ: Giày Dép Sân Khấu, Phụ Kiện..." required style="padding: 10px 14px; font-size: 13px;">
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-plus"></i> Thêm Phân Loại
+          </button>
+        </div>
+      </form>
+
+      <!-- Danh sách Phân Loại Hiện Có -->
+      <div>
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-list-ul" style="color: var(--primary);"></i> Danh Sách Phân Loại Hiện Có:
+        </h4>
+        <div id="existing-types-list" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+          <!-- Nạp động -->
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-manage-type')" style="padding: 8px 18px; font-size: 13px;">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Quản Lý Kích Thước / Size (Sub-modal) -->
+  <div id="modal-manage-size" class="modal-overlay sub-modal">
+    <div class="modal-box glass-card" style="max-width: 500px; padding: 26px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px;">
+        <h3 style="display: flex; align-items: center; gap: 12px; font-size: 1.15rem; font-weight: 800; color: var(--text-heading);">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 12px; font-size: 17px;">
+            <i class="fa-solid fa-ruler-combined"></i>
+          </span>
+          Quản Lý Kích Thước (Size)
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-manage-size')">&times;</button>
+      </div>
+
+      <!-- Form Thêm Mới -->
+      <form onsubmit="saveNewSize(event)" style="margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px dashed var(--border);">
+        <div class="form-row" style="gap: 10px;">
+          <div class="form-group" style="flex: 1; margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Tên Size Mới *</label>
+            <input type="text" id="new-size-name" class="form-control" placeholder="Ví dụ: Size 3XL, Size Giày 39..." required style="padding: 10px 14px; font-size: 13px;">
+          </div>
+          <div class="form-group" style="flex: 1; margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Nhóm Size</label>
+            <select id="new-size-group" class="form-control" style="padding: 10px 14px; font-size: 13px;">
+              <option value="Size Chữ">Size Chữ (S, M, L...)</option>
+              <option value="Size Số">Size Số (1, 2, 3...)</option>
+              <option value="Khác">Khác / Giày dép / Mũ</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-plus"></i> Thêm Size
+          </button>
+        </div>
+      </form>
+
+      <!-- Danh sách Size Hiện Có -->
+      <div>
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-list-ul" style="color: var(--primary);"></i> Danh Sách Size Hiện Có:
+        </h4>
+        <div id="existing-sizes-list" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+          <!-- Nạp động -->
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-manage-size')" style="padding: 8px 18px; font-size: 13px;">Đóng</button>
+      </div>
     </div>
   </div>
 

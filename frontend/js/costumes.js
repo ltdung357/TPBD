@@ -2,7 +2,11 @@
 
 let costumesList = [];
 let categoriesList = [];
+let typesList = [];
+let sizesList = [];
 let lastSelectedCategoryId = null;
+let lastSelectedTypeCode = null;
+let lastSelectedSizeName = null;
 let filteredCategory = 'ALL';
 let filteredSize = 'ALL';
 let currentFormImages = []; // Danh sách tất cả các ảnh đã tải lên của sản phẩm hiện tại
@@ -10,7 +14,7 @@ let currentCoverImage = ''; // Đường dẫn ảnh đại diện được ch�
 
 async function loadCostumes(searchQuery = '') {
   try {
-    await loadCategories();
+    await Promise.all([loadCategories(), loadTypes(), loadSizes()]);
     let url = `/api/costumes?search=${encodeURIComponent(searchQuery)}`;
     const res = await fetch(url);
     costumesList = await res.json();
@@ -29,6 +33,7 @@ async function loadCategories() {
     categoriesList = await res.json();
     renderCategoryDropdown();
     renderCategoryFilterButtons();
+    renderExistingCategoriesList();
   } catch (err) {
     console.error('Lỗi nạp danh mục:', err);
   }
@@ -42,7 +47,7 @@ function renderCategoryDropdown(selectTargetId = null) {
 
   let html = categoriesList.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
   if (typeof currentUser !== 'undefined' && currentUser) {
-    html += `<option value="__ADD_NEW__" style="font-weight: 700; color: var(--primary);">➕ Thêm danh mục mới...</option>`;
+    html += `<option value="__ADD_NEW__" style="font-weight: 700; color: var(--primary);">➕ Thêm / Quản lý danh mục...</option>`;
   }
 
   selectEl.innerHTML = html;
@@ -57,17 +62,45 @@ function renderCategoryDropdown(selectTargetId = null) {
 }
 
 function renderCategoryFilterButtons() {
-  const container = document.getElementById('category-filter-buttons');
+  const selectEl = document.getElementById('filter-category-select');
+  if (!selectEl) return;
+
+  let html = `<option value="ALL">Tất cả danh mục</option>`;
+  html += categoriesList.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+
+  selectEl.innerHTML = html;
+  selectEl.value = filteredCategory;
+}
+
+function renderExistingCategoriesList() {
+  const container = document.getElementById('existing-categories-list');
   if (!container) return;
 
-  let html = `<button class="btn btn-sm ${filteredCategory === 'ALL' ? 'btn-primary active' : 'btn-secondary'} filter-cat-btn" onclick="filterCostumesByCategory('ALL', this)">Tất Cả</button>`;
+  if (!categoriesList || categoriesList.length === 0) {
+    container.innerHTML = `<div style="font-size: 12px; color: var(--text-muted); padding: 8px; text-align: center;">Chưa có danh mục nào.</div>`;
+    return;
+  }
 
-  html += categoriesList.map(cat => {
-    const isActive = (String(filteredCategory) === String(cat.id));
-    return `<button class="btn btn-sm ${isActive ? 'btn-primary active' : 'btn-secondary'} filter-cat-btn" onclick="filterCostumesByCategory('${cat.id}', this)">${cat.name}</button>`;
+  container.innerHTML = categoriesList.map(cat => {
+    const isDefault = Boolean(cat.is_default || cat.id <= 5);
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(248,250,252,0.9); border: 1px solid var(--border); border-radius: 8px;">
+        <div>
+          <strong style="font-size: 13px; color: var(--text-heading); display: block;">${cat.name}</strong>
+          ${cat.description ? `<small style="font-size: 11px; color: var(--text-muted);">${cat.description}</small>` : ''}
+        </div>
+        ${isDefault ? `
+          <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Mặc định</span>
+        ` : `
+          <button type="button" class="btn btn-sm" onclick="deleteCategoryById(${cat.id})" 
+            style="padding: 3px 8px; font-size: 11px; color: #ef4444; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; font-weight: 600; cursor: pointer;"
+            title="Xóa danh mục này">
+            <i class="fa-solid fa-trash-can"></i> Xóa
+          </button>
+        `}
+      </div>
+    `;
   }).join('');
-
-  container.innerHTML = html;
 }
 
 function handleCategorySelectChange(selectEl) {
@@ -83,11 +116,12 @@ function handleCategorySelectChange(selectEl) {
 
 function promptAddCategory() {
   if (!currentUser) {
-    showToast('Vui lòng đăng nhập quyền Admin để thêm danh mục!', 'error');
+    showToast('Vui lòng đăng nhập quyền Admin để quản lý danh mục!', 'error');
     return;
   }
   document.getElementById('new-category-name').value = '';
   document.getElementById('new-category-desc').value = '';
+  renderExistingCategoriesList();
   openModal('modal-add-category');
   setTimeout(() => {
     const input = document.getElementById('new-category-name');
@@ -120,7 +154,8 @@ async function saveNewCategory(e) {
     if (!res.ok) throw new Error(data.message || 'Tạo danh mục thất bại!');
 
     showToast('Thêm danh mục mới thành công!');
-    closeModal('modal-add-category');
+    document.getElementById('new-category-name').value = '';
+    document.getElementById('new-category-desc').value = '';
 
     await loadCategories();
     renderCategoryDropdown(data.id);
@@ -129,17 +164,9 @@ async function saveNewCategory(e) {
   }
 }
 
-async function deleteSelectedCategory() {
+async function deleteCategoryById(catId) {
   if (!currentUser) {
     showToast('Vui lòng đăng nhập quyền Admin để xóa danh mục!', 'error');
-    return;
-  }
-
-  const selectEl = document.getElementById('costume-category');
-  const catId = selectEl ? selectEl.value : null;
-
-  if (!catId || catId === '__ADD_NEW__') {
-    showToast('Vui lòng chọn 1 danh mục để xóa!', 'error');
     return;
   }
 
@@ -170,16 +197,336 @@ async function deleteSelectedCategory() {
   }
 }
 
-function filterCostumesByCategory(catId, btnEl) {
-  filteredCategory = catId;
-  document.querySelectorAll('.filter-cat-btn').forEach(b => {
-    b.classList.remove('active', 'btn-primary');
-    b.classList.add('btn-secondary');
-  });
-  if (btnEl) {
-    btnEl.classList.remove('btn-secondary');
-    btnEl.classList.add('active', 'btn-primary');
+// ====== QUẢN LÝ PHÂN LOẠI (TYPES) ======
+async function loadTypes() {
+  try {
+    const res = await fetch('/api/costumes/types');
+    if (!res.ok) return;
+    typesList = await res.json();
+    renderTypeDropdown();
+    renderExistingTypesList();
+  } catch (err) {
+    console.error('Lỗi nạp phân loại:', err);
   }
+}
+
+function renderTypeDropdown(selectTargetCode = null) {
+  const selectEl = document.getElementById('costume-type');
+  if (!selectEl) return;
+
+  const currentVal = selectTargetCode || selectEl.value || (typesList[0] ? typesList[0].code : 'COSTUME');
+
+  let html = typesList.map(t => `<option value="${t.code}">${t.name}</option>`).join('');
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    html += `<option value="__ADD_NEW__" style="font-weight: 700; color: var(--primary);">➕ Thêm / Quản lý phân loại...</option>`;
+  }
+
+  selectEl.innerHTML = html;
+
+  if (currentVal && Array.from(selectEl.options).some(opt => String(opt.value) === String(currentVal))) {
+    selectEl.value = currentVal;
+    lastSelectedTypeCode = currentVal;
+  } else if (typesList.length > 0) {
+    selectEl.value = typesList[0].code;
+    lastSelectedTypeCode = typesList[0].code;
+  }
+}
+
+function renderExistingTypesList() {
+  const container = document.getElementById('existing-types-list');
+  if (!container) return;
+
+  if (!typesList || typesList.length === 0) {
+    container.innerHTML = `<div style="font-size: 12px; color: var(--text-muted); padding: 8px; text-align: center;">Chưa có phân loại nào.</div>`;
+    return;
+  }
+
+  container.innerHTML = typesList.map(t => `
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(248,250,252,0.9); border: 1px solid var(--border); border-radius: 8px;">
+      <div>
+        <strong style="font-size: 13px; color: var(--text-heading); display: block;">${t.name}</strong>
+        <small style="font-size: 11px; color: var(--text-muted);">Mã: ${t.code}</small>
+      </div>
+      ${t.is_default ? `
+        <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Mặc định</span>
+      ` : `
+        <button type="button" class="btn btn-sm" onclick="deleteTypeById(${t.id})" 
+          style="padding: 3px 8px; font-size: 11px; color: #ef4444; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; font-weight: 600; cursor: pointer;">
+          <i class="fa-solid fa-trash-can"></i> Xóa
+        </button>
+      `}
+    </div>
+  `).join('');
+}
+
+function handleTypeSelectChange(selectEl) {
+  if (selectEl.value === '__ADD_NEW__') {
+    if (lastSelectedTypeCode) selectEl.value = lastSelectedTypeCode;
+    promptManageType();
+  } else {
+    lastSelectedTypeCode = selectEl.value;
+  }
+}
+
+function promptManageType() {
+  if (!currentUser) {
+    showToast('Vui lòng đăng nhập quyền Admin để quản lý phân loại!', 'error');
+    return;
+  }
+  document.getElementById('new-type-name').value = '';
+  renderExistingTypesList();
+  openModal('modal-manage-type');
+  setTimeout(() => {
+    const input = document.getElementById('new-type-name');
+    if (input) input.focus();
+  }, 100);
+}
+
+async function saveNewType(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('tpbd_token');
+  const name = document.getElementById('new-type-name').value.trim();
+  if (!name) return showToast('Vui lòng nhập tên phân loại!', 'error');
+
+  try {
+    const res = await fetch('/api/costumes/types', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Tạo phân loại thất bại!');
+
+    showToast('Thêm phân loại mới thành công!');
+    document.getElementById('new-type-name').value = '';
+    await loadTypes();
+    renderTypeDropdown(data.code);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function deleteTypeById(typeId) {
+  if (!currentUser) return showToast('Vui lòng đăng nhập quyền Admin để xóa phân loại!', 'error');
+  const t = typesList.find(item => item.id === typeId);
+  if (!t || !confirm(`Bạn có chắc muốn xóa phân loại "${t.name}"?`)) return;
+
+  const token = localStorage.getItem('tpbd_token');
+  try {
+    const res = await fetch(`/api/costumes/types/${typeId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Xóa thất bại!');
+
+    showToast('Đã xóa phân loại thành công!');
+    await loadTypes();
+    loadCostumes();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function sortCostumeSizes(sizes) {
+  if (!sizes || !Array.isArray(sizes)) return [];
+  const customOrder = [
+    'FREE SIZE', 'FREE',
+    'XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', '4XL', '5XL'
+  ];
+
+  return sizes.sort((a, b) => {
+    const nameA = (a.name || '').trim().toUpperCase();
+    const nameB = (b.name || '').trim().toUpperCase();
+
+    const idxA = customOrder.indexOf(nameA);
+    const idxB = customOrder.indexOf(nameB);
+
+    if (idxA !== -1 && idxB !== -1) {
+      return idxA - idxB;
+    }
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+
+    const numA = parseInt(nameA.replace(/\D/g, ''), 10);
+    const numB = parseInt(nameB.replace(/\D/g, ''), 10);
+
+    if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+      return numA - numB;
+    }
+
+    return nameA.localeCompare(nameB);
+  });
+}
+
+// ====== QUẢN LÝ KÍCH THƯỚC (SIZES) ======
+async function loadSizes() {
+  try {
+    const res = await fetch('/api/costumes/sizes');
+    if (!res.ok) return;
+    sizesList = sortCostumeSizes(await res.json());
+    renderSizeDropdown();
+    renderExistingSizesList();
+    renderFilterSizeSelect();
+  } catch (err) {
+    console.error('Lỗi nạp kích thước:', err);
+  }
+}
+
+function renderSizeDropdown(selectTargetName = null) {
+  const selectEl = document.getElementById('costume-size');
+  if (!selectEl) return;
+
+  const currentVal = selectTargetName || selectEl.value || (sizesList[0] ? sizesList[0].name : 'FREE');
+
+  const grouped = {};
+  sizesList.forEach(s => {
+    const group = s.category_label || 'Khác';
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push(s);
+  });
+
+  let html = '';
+  Object.keys(grouped).forEach(groupName => {
+    html += `<optgroup label="-- ${groupName} --">`;
+    grouped[groupName].forEach(s => {
+      html += `<option value="${s.name}">${s.name}</option>`;
+    });
+    html += `</optgroup>`;
+  });
+
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    html += `<option value="__ADD_NEW__" style="font-weight: 700; color: var(--primary);">➕ Thêm / Quản lý size...</option>`;
+  }
+
+  selectEl.innerHTML = html;
+
+  if (currentVal && Array.from(selectEl.options).some(opt => String(opt.value) === String(currentVal))) {
+    selectEl.value = currentVal;
+    lastSelectedSizeName = currentVal;
+  } else if (sizesList.length > 0) {
+    selectEl.value = sizesList[0].name;
+    lastSelectedSizeName = sizesList[0].name;
+  }
+}
+
+function renderFilterSizeSelect() {
+  const selectEl = document.getElementById('filter-size-select');
+  if (!selectEl) return;
+
+  let html = `<option value="ALL">Tất cả size</option>`;
+  sizesList.forEach(s => {
+    html += `<option value="${s.name}">${s.name}</option>`;
+  });
+  selectEl.innerHTML = html;
+}
+
+function renderExistingSizesList() {
+  const container = document.getElementById('existing-sizes-list');
+  if (!container) return;
+
+  if (!sizesList || sizesList.length === 0) {
+    container.innerHTML = `<div style="font-size: 12px; color: var(--text-muted); padding: 8px; text-align: center;">Chưa có kích thước nào.</div>`;
+    return;
+  }
+
+  container.innerHTML = sizesList.map(s => `
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(248,250,252,0.9); border: 1px solid var(--border); border-radius: 8px;">
+      <div>
+        <strong style="font-size: 13px; color: var(--text-heading); display: block;">${s.name}</strong>
+        <small style="font-size: 11px; color: var(--text-muted);">Nhóm: ${s.category_label || 'Khác'}</small>
+      </div>
+      ${s.is_default ? `
+        <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Mặc định</span>
+      ` : `
+        <button type="button" class="btn btn-sm" onclick="deleteSizeById(${s.id})" 
+          style="padding: 3px 8px; font-size: 11px; color: #ef4444; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; font-weight: 600; cursor: pointer;">
+          <i class="fa-solid fa-trash-can"></i> Xóa
+        </button>
+      `}
+    </div>
+  `).join('');
+}
+
+function handleSizeSelectChange(selectEl) {
+  if (selectEl.value === '__ADD_NEW__') {
+    if (lastSelectedSizeName) selectEl.value = lastSelectedSizeName;
+    promptManageSize();
+  } else {
+    lastSelectedSizeName = selectEl.value;
+  }
+}
+
+function promptManageSize() {
+  if (!currentUser) {
+    showToast('Vui lòng đăng nhập quyền Admin để quản lý kích thước (size)!', 'error');
+    return;
+  }
+  document.getElementById('new-size-name').value = '';
+  renderExistingSizesList();
+  openModal('modal-manage-size');
+  setTimeout(() => {
+    const input = document.getElementById('new-size-name');
+    if (input) input.focus();
+  }, 100);
+}
+
+async function saveNewSize(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('tpbd_token');
+  const name = document.getElementById('new-size-name').value.trim();
+  const category_label = document.getElementById('new-size-group').value;
+
+  if (!name) return showToast('Vui lòng nhập tên kích thước (size)!', 'error');
+
+  try {
+    const res = await fetch('/api/costumes/sizes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ name, category_label })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Tạo kích thước thất bại!');
+
+    showToast('Thêm kích thước mới thành công!');
+    document.getElementById('new-size-name').value = '';
+    await loadSizes();
+    renderSizeDropdown(data.name);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function deleteSizeById(sizeId) {
+  if (!currentUser) return showToast('Vui lòng đăng nhập quyền Admin để xóa kích thước!', 'error');
+  const s = sizesList.find(item => item.id === sizeId);
+  if (!s || !confirm(`Bạn có chắc muốn xóa kích thước "${s.name}"?`)) return;
+
+  const token = localStorage.getItem('tpbd_token');
+  try {
+    const res = await fetch(`/api/costumes/sizes/${sizeId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Xóa thất bại!');
+
+    showToast('Đã xóa kích thước thành công!');
+    await loadSizes();
+    loadCostumes();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function filterCostumesByCategory(catId) {
+  filteredCategory = catId;
   applyCostumeFilters();
 }
 
@@ -278,7 +625,6 @@ function openCostumeDetail(id) {
   document.getElementById('detail-code').innerText = `Mã sản phẩm: ${item.code}`;
   document.getElementById('detail-size-badge').innerText = item.size || 'FREE';
   document.getElementById('detail-price').innerHTML = `${formatVND(item.price_per_day)} <small style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/ ngày</small>`;
-  document.getElementById('detail-deposit').innerText = formatVND(item.deposit_fee || 0);
   document.getElementById('detail-qty').innerText = `${item.available_qty} / ${item.total_qty} bộ sẵn sàng`;
   document.getElementById('detail-desc').innerText = item.description || 'Sản phẩm phục vụ biểu diễn sân khấu, nghệ thuật, múa dân tộc và sự kiện.';
 
@@ -311,6 +657,8 @@ function openCostumeDetail(id) {
 function openCostumeModalForCreate() {
   resetCostumeForm();
   renderCategoryDropdown();
+  renderTypeDropdown();
+  renderSizeDropdown();
   document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
   openModal('modal-costume');
 }
@@ -425,7 +773,7 @@ async function saveCostume(e) {
     size: document.getElementById('costume-size').value,
     total_qty: parseInt(document.getElementById('costume-qty').value, 10),
     price_per_day: parseFloat(document.getElementById('costume-price').value),
-    deposit_fee: parseFloat(document.getElementById('costume-deposit').value || 0),
+    deposit_fee: 0,
     image_url: currentCoverImage || (currentFormImages.length > 0 ? currentFormImages[0] : ''),
     images: currentFormImages,
     description: document.getElementById('costume-desc').value.trim()
@@ -473,6 +821,8 @@ function editCostume(id) {
   if (!item) return;
 
   renderCategoryDropdown(item.category_id);
+  renderTypeDropdown(item.type);
+  renderSizeDropdown(item.size);
 
   document.getElementById('costume-id').value = item.id;
   document.getElementById('costume-name').value = item.name;
@@ -484,7 +834,6 @@ function editCostume(id) {
   document.getElementById('costume-size').value = item.size || 'FREE';
   document.getElementById('costume-qty').value = item.total_qty;
   document.getElementById('costume-price').value = item.price_per_day;
-  document.getElementById('costume-deposit').value = item.deposit_fee || 0;
   document.getElementById('costume-desc').value = item.description || '';
 
   // Parse images array

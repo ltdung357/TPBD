@@ -66,12 +66,134 @@ router.delete('/categories/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   try {
     const pool = getPool();
-    await pool.query('UPDATE costumes SET category_id = NULL WHERE category_id = $1', [id]);
-    const result = await pool.query('DELETE FROM costume_categories WHERE id = $1 RETURNING *', [id]);
-    if (result.rowCount === 0) {
+    const check = await pool.query('SELECT * FROM costume_categories WHERE id = $1', [id]);
+    if (check.rows.length === 0) {
       return res.status(404).json({ message: 'Danh mục không tồn tại!' });
     }
+    if (check.rows[0].is_default || parseInt(id, 10) <= 5) {
+      return res.status(400).json({ message: 'Không thể xóa danh mục mặc định của hệ thống!' });
+    }
+
+    await pool.query('UPDATE costumes SET category_id = NULL WHERE category_id = $1', [id]);
+    const result = await pool.query('DELETE FROM costume_categories WHERE id = $1 RETURNING *', [id]);
     res.json({ message: 'Đã xóa danh mục thành công!', category: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+// ====== QUẢN LÝ PHÂN LOẠI (TYPES) ======
+router.get('/types', async (req, res) => {
+  try {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM costume_types ORDER BY id ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+router.post('/types', verifyToken, async (req, res) => {
+  const { name, code } = req.body;
+  if (!name) return res.status(400).json({ message: 'Vui lòng nhập tên phân loại!' });
+  const typeCode = code || name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+
+  try {
+    const pool = getPool();
+    const result = await pool.query(
+      `INSERT INTO costume_types (code, name) VALUES ($1, $2) RETURNING *`,
+      [typeCode, name]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+router.delete('/types/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const check = await pool.query('SELECT * FROM costume_types WHERE id = $1', [id]);
+    if (check.rows.length === 0) return res.status(404).json({ message: 'Phân loại không tồn tại!' });
+    if (check.rows[0].is_default) return res.status(400).json({ message: 'Không thể xóa phân loại mặc định!' });
+
+    await pool.query('DELETE FROM costume_types WHERE id = $1', [id]);
+    res.json({ message: 'Đã xóa phân loại thành công!' });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+function sortCostumeSizes(sizes) {
+  if (!sizes || !Array.isArray(sizes)) return [];
+  const customOrder = [
+    'FREE SIZE', 'FREE',
+    'XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', '4XL', '5XL'
+  ];
+
+  return sizes.sort((a, b) => {
+    const nameA = (a.name || '').trim().toUpperCase();
+    const nameB = (b.name || '').trim().toUpperCase();
+
+    const idxA = customOrder.indexOf(nameA);
+    const idxB = customOrder.indexOf(nameB);
+
+    if (idxA !== -1 && idxB !== -1) {
+      return idxA - idxB;
+    }
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+
+    const numA = parseInt(nameA.replace(/\D/g, ''), 10);
+    const numB = parseInt(nameB.replace(/\D/g, ''), 10);
+
+    if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+      return numA - numB;
+    }
+
+    return nameA.localeCompare(nameB);
+  });
+}
+
+// ====== QUẢN LÝ KÍCH THƯỚC (SIZES) ======
+router.get('/sizes', async (req, res) => {
+  try {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM costume_sizes ORDER BY id ASC');
+    const sorted = sortCostumeSizes(result.rows);
+    res.json(sorted);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+router.post('/sizes', verifyToken, async (req, res) => {
+  const { name, category_label } = req.body;
+  if (!name) return res.status(400).json({ message: 'Vui lòng nhập tên kích thước (Size)!' });
+
+  try {
+    const pool = getPool();
+    const result = await pool.query(
+      `INSERT INTO costume_sizes (name, category_label) VALUES ($1, $2) RETURNING *`,
+      [name.trim(), category_label || 'Khác']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+router.delete('/sizes/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const check = await pool.query('SELECT * FROM costume_sizes WHERE id = $1', [id]);
+    if (check.rows.length === 0) return res.status(404).json({ message: 'Kích thước không tồn tại!' });
+    if (check.rows[0].is_default) return res.status(400).json({ message: 'Không thể xóa kích thước mặc định!' });
+
+    await pool.query('DELETE FROM costume_sizes WHERE id = $1', [id]);
+    res.json({ message: 'Đã xóa kích thước thành công!' });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
   }
