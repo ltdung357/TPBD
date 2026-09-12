@@ -27,7 +27,7 @@ async function syncOnlineToLocalStrict() {
 
     // Làm sạch dữ liệu local trước khi tải dữ liệu online về
     await localPool.query(`
-      TRUNCATE TABLE rental_items, rental_orders, customers, costumes, costume_categories, users CASCADE;
+      TRUNCATE TABLE rental_items, rental_orders, customers, costumes, costume_categories, costume_types, costume_sizes, users CASCADE;
     `);
 
     // 1. Sync users
@@ -50,6 +50,26 @@ async function syncOnlineToLocalStrict() {
       );
     }
     console.log(`  ✅ Đã đồng bộ ${catsRes.rows.length} danh mục trang phục.`);
+
+    // 2b. Sync costume_types
+    const typesRes = await onlinePool.query('SELECT * FROM costume_types ORDER BY id ASC');
+    for (const t of typesRes.rows) {
+      await localPool.query(
+        `INSERT INTO costume_types (id, code, name, is_default, created_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`,
+        [t.id, t.code, t.name, t.is_default, t.created_at]
+      );
+    }
+    console.log(`  ✅ Đã đồng bộ ${typesRes.rows.length} phân loại.`);
+
+    // 2c. Sync costume_sizes
+    const sizesRes = await onlinePool.query('SELECT * FROM costume_sizes ORDER BY id ASC');
+    for (const s of sizesRes.rows) {
+      await localPool.query(
+        `INSERT INTO costume_sizes (id, name, category_label, is_default, created_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`,
+        [s.id, s.name, s.category_label, s.is_default, s.created_at]
+      );
+    }
+    console.log(`  ✅ Đã đồng bộ ${sizesRes.rows.length} kích thước (size).`);
 
     // 3. Sync costumes
     const costumesRes = await onlinePool.query('SELECT * FROM costumes ORDER BY id ASC');
