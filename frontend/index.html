@@ -462,8 +462,8 @@
       <div class="modal-detail-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         <!-- Left: Image Gallery & Cover Preview -->
         <div>
-          <div style="position: relative; border-radius: 12px; overflow: hidden; height: 260px; background: #f1f5f9; border: 1px solid var(--border); margin-bottom: 10px;">
-            <img id="detail-main-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: relative; border-radius: 12px; overflow: hidden; min-height: 260px; max-height: 420px; background: #0f172a; border: 1px solid var(--border); margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">
+            <img id="detail-main-img" src="" style="width: 100%; height: auto; max-height: 420px; object-fit: contain; display: block; cursor: pointer;" title="Bấm để xem ảnh phóng to full màn hình" onclick="window.open(this.src, '_blank')">
             <span id="detail-size-badge" class="costume-badge-size">FREE</span>
           </div>
 
