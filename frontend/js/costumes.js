@@ -635,8 +635,10 @@ function openCostumeDetail(id) {
   }
 
   // Set Main image & Thumbnails
+  const fallbackImg = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60';
   const mainImgEl = document.getElementById('detail-main-img');
   mainImgEl.src = mainCover;
+  mainImgEl.onerror = () => { mainImgEl.src = fallbackImg; };
 
   const thumbsContainer = document.getElementById('detail-gallery-thumbs');
   if (thumbsContainer) {
@@ -645,6 +647,7 @@ function openCostumeDetail(id) {
     } else {
       thumbsContainer.innerHTML = imgList.map((url, idx) => `
         <img src="${url}" onclick="document.getElementById('detail-main-img').src='${url}'" 
+          onerror="this.src='${fallbackImg}'"
           style="width: 55px; height: 55px; object-fit: cover; border-radius: 8px; border: 2px solid ${url === mainCover ? 'var(--primary)' : 'var(--border)'}; cursor: pointer; flex-shrink: 0;"
           onmouseover="this.style.borderColor='var(--primary)'">
       `).join('');
@@ -664,48 +667,74 @@ function openCostumeModalForCreate() {
 }
 
 
-// Xử lý upload 1 hoặc nhiều ảnh cùng lúc từ camera / điện thoại
+// Nén ảnh trực tiếp trên trình duyệt thành Base64 Data URL (Lưu trực tiếp vào Database, không bao giờ mất khi restart server)
+function compressImageFile(file, maxWidth = 800, maxHeight = 800, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = e.target.result;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Xử lý upload 1 hoặc nhiều ảnh cùng lúc từ camera / điện thoại (Tự động nén & lưu trực tiếp vĩnh viễn)
 async function uploadMultipleCostumeImages(event) {
   const files = event.target.files;
   if (!files || files.length === 0) return;
 
   const statusText = document.getElementById('upload-status-text');
-  if (statusText) statusText.innerText = `Đang tải ${files.length} ảnh...`;
-
-  const formData = new FormData();
-  for (let i = 0; i < files.length; i++) {
-    formData.append('images', files[i]);
-  }
-
-  const token = localStorage.getItem('tpbd_token');
+  if (statusText) statusText.innerText = `Đang nén & lưu ${files.length} ảnh...`;
 
   try {
-    const res = await fetch('/api/costumes/upload', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
+    const compressedUrls = [];
+    for (let i = 0; i < files.length; i++) {
+      const base64Url = await compressImageFile(files[i]);
+      compressedUrls.push(base64Url);
+    }
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Tải ảnh thất bại!');
+    currentFormImages = [...currentFormImages, ...compressedUrls];
 
-    const uploadedUrls = data.image_urls || [data.image_url];
-    currentFormImages = [...currentFormImages, ...uploadedUrls];
-
-    // Nếu chưa có ảnh đại diện -> lấy ảnh đầu tiên làm đại diện
     if (!currentCoverImage && currentFormImages.length > 0) {
       currentCoverImage = currentFormImages[0];
     }
 
     renderGalleryThumbnails();
 
-    if (statusText) statusText.innerText = `✅ Đã tải ${files.length} ảnh thành công!`;
-    showToast(`Tải ${files.length} ảnh lên thành công!`);
+    if (statusText) statusText.innerText = `✅ Đã lưu ${files.length} ảnh thành công!`;
+    showToast(`Tải & nén ${files.length} ảnh thành công!`);
   } catch (err) {
-    if (statusText) statusText.innerText = '❌ Lỗi tải ảnh';
-    showToast(err.message, 'error');
+    if (statusText) statusText.innerText = '❌ Lỗi xử lý ảnh';
+    showToast('Lỗi xử lý ảnh: ' + err.message, 'error');
   }
 }
 
@@ -713,6 +742,8 @@ async function uploadMultipleCostumeImages(event) {
 function renderGalleryThumbnails() {
   const container = document.getElementById('costume-gallery-grid');
   if (!container) return;
+
+  const fallbackImg = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60';
 
   if (currentFormImages.length === 0) {
     container.innerHTML = `<div style="grid-column: 1/-1; font-size: 12px; color: var(--text-muted);">Chưa có ảnh nào. Bấm nút phía trên để chụp hoặc tải ảnh.</div>`;
@@ -723,7 +754,7 @@ function renderGalleryThumbnails() {
     const isCover = (url === currentCoverImage);
     return `
       <div style="position: relative; border-radius: 8px; overflow: hidden; border: ${isCover ? '2px solid var(--primary)' : '1px solid var(--border)'}; background: #f8fafc;">
-        <img src="${url}" style="width: 100%; height: 90px; object-fit: cover; display: block;">
+        <img src="${url}" onerror="this.src='${fallbackImg}'" style="width: 100%; height: 90px; object-fit: cover; display: block;">
         
         <!-- Nút Đặt ảnh đại diện -->
         <button type="button" onclick="setAsCoverImage('${url}')" 
