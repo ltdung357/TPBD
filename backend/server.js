@@ -308,6 +308,8 @@ const initDatabase = async () => {
 
 initDatabase();
 
+const systemRouter = require('./routes/system');
+
 // ====== MOUNT API ROUTERS ======
 app.use('/api/auth', authRouter);
 app.use('/api/costumes', costumeRouter);
@@ -315,6 +317,7 @@ app.use('/api/rentals', rentalRouter);
 app.use('/api/choreography', choreoRouter);
 app.use('/api/customers', customerRouter);
 app.use('/api/reports', reportRouter);
+app.use('/api/system', systemRouter);
 
 // Fallback HTML router
 app.get('*', (req, res) => {

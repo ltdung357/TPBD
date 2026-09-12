@@ -193,3 +193,63 @@ function handleGlobalSearch(query) {
   if (activeSection.id === 'section-customers') loadCustomers(query);
 }
 
+// Render Deploy & Restart Helper
+async function triggerRenderDeploy() {
+  const token = localStorage.getItem('tpbd_token');
+  if (!token) {
+    showToast('Vui lòng đăng nhập quyền Quản lý!', 'error');
+    return;
+  }
+
+  showToast('Đang gửi lệnh Restart tới Render...', 'info');
+
+  try {
+    const res = await fetch('/api/system/trigger-deploy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      if (data.need_config) {
+        openModal('modal-config-deploy-hook');
+        return;
+      }
+      throw new Error(data.message || 'Gửi lệnh thất bại!');
+    }
+
+    showToast(data.message, 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function saveDeployHook(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('tpbd_token');
+  const deploy_hook = document.getElementById('deploy-hook-input').value.trim();
+
+  try {
+    const res = await fetch('/api/system/save-deploy-hook', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ deploy_hook })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Lưu thất bại!');
+
+    showToast(data.message, 'success');
+    closeModal('modal-config-deploy-hook');
+    setTimeout(triggerRenderDeploy, 500);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
