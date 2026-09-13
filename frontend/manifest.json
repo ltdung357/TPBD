@@ -1,0 +1,10 @@
+{
+  "name": "Trang Phục Biểu Diễn Thúy Hà",
+  "short_name": "TPBD Thúy Hà",
+  "description": "Hệ thống cho thuê trang phục & đạo cụ biểu diễn Thúy Hà",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#6366f1",
+  "orientation": "portrait"
+}
