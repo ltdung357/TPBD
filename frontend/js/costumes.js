@@ -721,19 +721,13 @@ function renderCostumesGrid(items) {
           <span>Mã: <strong>${item.code}</strong></span>
           <span>Kho: <strong>${item.available_qty} / ${item.total_qty}</strong></span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;" onclick="event.stopPropagation();">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
           <span class="costume-price">${formatVND(item.price_per_day)} <small style="font-size: 10px; color: var(--text-muted); font-weight: normal;">/ ngày</small></span>
-          <div style="display: flex; gap: 6px;">
-            ${isAdmin ? `
-              <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editCostume(${item.id})">
-                <i class="fa-solid fa-pen"></i> Sửa
-              </button>
-            ` : `
-              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openCostumeDetail(${item.id})">
-                <i class="fa-solid fa-eye"></i> Xem Chi Tiết
-              </button>
-            `}
-          </div>
+          ${isAdmin ? `
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editCostume(${item.id})">
+              <i class="fa-solid fa-pen"></i> Sửa
+            </button>
+          ` : ''}
         </div>
       </div>
     `;

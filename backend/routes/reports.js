@@ -26,7 +26,7 @@ router.get('/dashboard', async (req, res) => {
         SUM(CASE WHEN status = 'RENTED' THEN 1 ELSE 0 END) as active_rentals,
         SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) as completed_rentals,
         SUM(CASE WHEN status = 'OVERDUE' THEN 1 ELSE 0 END) as overdue_rentals,
-        COALESCE(SUM(CASE WHEN status IN ('RENTED', 'RETURNED') THEN total_amount ELSE 0 END), 0) as rental_revenue
+        COALESCE(SUM(CASE WHEN is_paid = true THEN total_amount ELSE 0 END), 0) as rental_revenue
       FROM rental_orders
     `);
 
@@ -52,7 +52,7 @@ router.get('/dashboard', async (req, res) => {
       SELECT id, order_code, customer_name, customer_phone, rental_end, status, total_amount
       FROM rental_orders
       WHERE status IN ('RENTED', 'OVERDUE')
-      ORDER BY rental_end ASC
+      ORDER BY rental_end ASC NULLS LAST
       LIMIT 5
     `);
 

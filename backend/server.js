@@ -126,7 +126,7 @@ const initDatabase = async () => {
         customer_phone VARCHAR(50) NOT NULL,
         customer_email VARCHAR(255),
         rental_start DATE NOT NULL,
-        rental_end DATE NOT NULL,
+        rental_end DATE,
         total_amount DECIMAL(12,2) DEFAULT 0,
         deposit_amount DECIMAL(12,2) DEFAULT 0,
         status VARCHAR(50) DEFAULT 'RENTED',
@@ -134,6 +134,8 @@ const initDatabase = async () => {
         created_by VARCHAR(255),
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE rental_orders ALTER COLUMN rental_end DROP NOT NULL;
+      ALTER TABLE rental_orders ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT false;
 
       CREATE TABLE IF NOT EXISTS rental_items (
         id SERIAL PRIMARY KEY,

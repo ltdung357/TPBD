@@ -170,6 +170,9 @@ function logout() {
 
 // Router SPA Navigation
 function navigateTo(sectionId) {
+  // Tự động đóng tất cả các modal đang mở (như modal xem chi tiết) khi chuyển trang
+  document.querySelectorAll('.modal-overlay.active').forEach(modal => modal.classList.remove('active'));
+
   // Guard admin pages if guest
   if (!currentUser && ['dashboard', 'rentals', 'customers'].includes(sectionId)) {
     showToast('Vui lòng đăng nhập để truy cập trang quản lý!', 'error');
@@ -208,6 +211,11 @@ function navigateTo(sectionId) {
 }
 
 function setupRouting() {
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '') || 'costumes';
+    navigateTo(hash);
+  });
+
   const hash = window.location.hash.replace('#', '') || 'costumes';
   navigateTo(hash);
 }
