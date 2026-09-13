@@ -112,10 +112,12 @@ const initDatabase = async () => {
         status VARCHAR(50) DEFAULT 'AVAILABLE',
         image_url TEXT,
         images JSONB DEFAULT '[]',
+        size_quantities JSONB DEFAULT '[]',
         description TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       ALTER TABLE costumes ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]';
+      ALTER TABLE costumes ADD COLUMN IF NOT EXISTS size_quantities JSONB DEFAULT '[]';
 
       CREATE TABLE IF NOT EXISTS rental_orders (
         id SERIAL PRIMARY KEY,

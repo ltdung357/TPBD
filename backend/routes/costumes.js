@@ -278,6 +278,7 @@ router.post('/', verifyToken, async (req, res) => {
     status,
     image_url,
     images,
+    size_quantities,
     description,
   } = req.body;
 
@@ -288,14 +289,27 @@ router.post('/', verifyToken, async (req, res) => {
   try {
     const pool = getPool();
     const generatedCode = code || 'TP-' + Math.floor(1000 + Math.random() * 9000);
-    const qty = parseInt(total_qty || 1, 10);
     const imagesArr = Array.isArray(images) ? images : (typeof images === 'string' && images ? JSON.parse(images) : []);
+    
+    let sizeQuantitiesArr = Array.isArray(size_quantities) ? size_quantities : (typeof size_quantities === 'string' && size_quantities ? JSON.parse(size_quantities) : []);
+
+    let computedTotalQty = 0;
+    let computedSizeStr = '';
+
+    if (sizeQuantitiesArr.length > 0) {
+      computedTotalQty = sizeQuantitiesArr.reduce((sum, item) => sum + (parseInt(item.total_qty || item.qty || 0, 10)), 0);
+      computedSizeStr = sizeQuantitiesArr.map(item => item.size).filter(Boolean).join(', ');
+    } else {
+      computedTotalQty = parseInt(total_qty || 1, 10);
+      computedSizeStr = size || 'FREE';
+      sizeQuantitiesArr = [{ size: computedSizeStr, total_qty: computedTotalQty, available_qty: computedTotalQty }];
+    }
 
     const result = await pool.query(
       `INSERT INTO costumes (
         category_id, name, code, type, gender, size, total_qty, available_qty,
-        price_per_day, deposit_fee, status, image_url, images, description
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        price_per_day, deposit_fee, status, image_url, images, size_quantities, description
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *`,
       [
         category_id || null,
@@ -303,14 +317,15 @@ router.post('/', verifyToken, async (req, res) => {
         generatedCode,
         type || 'COSTUME',
         gender || 'UNISEX',
-        size || 'FREE',
-        qty,
-        qty,
+        computedSizeStr,
+        computedTotalQty,
+        computedTotalQty,
         parseFloat(price_per_day),
         parseFloat(deposit_fee || 0),
         status || 'AVAILABLE',
         image_url || (imagesArr.length > 0 ? imagesArr[0] : null),
         JSON.stringify(imagesArr),
+        JSON.stringify(sizeQuantitiesArr),
         description || '',
       ]
     );
@@ -339,12 +354,24 @@ router.put('/:id', verifyToken, async (req, res) => {
     status,
     image_url,
     images,
+    size_quantities,
     description,
   } = req.body;
 
   try {
     const pool = getPool();
     const imagesArr = images ? (Array.isArray(images) ? images : JSON.parse(images)) : null;
+    let sizeQuantitiesArr = size_quantities ? (Array.isArray(size_quantities) ? size_quantities : JSON.parse(size_quantities)) : null;
+
+    let computedTotalQty = total_qty;
+    let computedAvailableQty = available_qty;
+    let computedSizeStr = size;
+
+    if (sizeQuantitiesArr && Array.isArray(sizeQuantitiesArr) && sizeQuantitiesArr.length > 0) {
+      computedTotalQty = sizeQuantitiesArr.reduce((sum, item) => sum + (parseInt(item.total_qty || item.qty || 0, 10)), 0);
+      computedAvailableQty = sizeQuantitiesArr.reduce((sum, item) => sum + (parseInt(item.available_qty !== undefined ? item.available_qty : (item.total_qty || 0), 10)), 0);
+      computedSizeStr = sizeQuantitiesArr.map(item => item.size).filter(Boolean).join(', ');
+    }
 
     const result = await pool.query(
       `UPDATE costumes SET
@@ -361,22 +388,24 @@ router.put('/:id', verifyToken, async (req, res) => {
         status = COALESCE($11, status),
         image_url = COALESCE($12, image_url),
         images = COALESCE($13::jsonb, images),
-        description = COALESCE($14, description)
-       WHERE id = $15 RETURNING *`,
+        size_quantities = COALESCE($14::jsonb, size_quantities),
+        description = COALESCE($15, description)
+       WHERE id = $16 RETURNING *`,
       [
         category_id,
         name,
         code,
         type,
         gender,
-        size,
-        total_qty,
-        available_qty,
+        computedSizeStr,
+        computedTotalQty,
+        computedAvailableQty,
         price_per_day,
         deposit_fee,
         status,
         image_url,
         imagesArr ? JSON.stringify(imagesArr) : null,
+        sizeQuantitiesArr ? JSON.stringify(sizeQuantitiesArr) : null,
         description,
         id,
       ]

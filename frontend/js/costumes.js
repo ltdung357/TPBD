@@ -535,6 +535,130 @@ function filterCostumesBySize(size) {
   applyCostumeFilters();
 }
 
+// ====== QUẢN LÝ VÀ PHÂN BỔ DÙNG NHIỀU SIZE ======
+function addCostumeSizeRow(selectedSize = '', quantity = 1) {
+  const container = document.getElementById('costume-size-rows-container');
+  if (!container) return;
+
+  const rowId = 'size-row-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.className = 'costume-size-row';
+  row.style.cssText = 'display: flex; gap: 8px; align-items: center; background: #fff; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);';
+
+  // Grouped sizes for select
+  const grouped = {};
+  sizesList.forEach(s => {
+    const group = s.category_label || 'Khác';
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push(s);
+  });
+
+  let optionsHtml = '';
+  Object.keys(grouped).forEach(groupName => {
+    optionsHtml += `<optgroup label="-- ${groupName} --">`;
+    grouped[groupName].forEach(s => {
+      optionsHtml += `<option value="${s.name}">${s.name}</option>`;
+    });
+    optionsHtml += `</optgroup>`;
+  });
+
+  if (selectedSize && !sizesList.some(s => s.name === selectedSize)) {
+    optionsHtml = `<option value="${selectedSize}">${selectedSize}</option>` + optionsHtml;
+  }
+
+  row.innerHTML = `
+    <div style="flex: 2;">
+      <select class="form-control costume-size-select" style="padding: 6px 10px; font-size: 13px; font-weight: 600;" onchange="calculateTotalCostumeQty()">
+        ${optionsHtml}
+      </select>
+    </div>
+    <div style="flex: 1; display: flex; align-items: center; gap: 4px;">
+      <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">SL:</span>
+      <input type="number" class="form-control costume-size-qty-input" value="${quantity}" min="1" style="padding: 6px 8px; font-size: 13px; font-weight: 700; text-align: center;" oninput="calculateTotalCostumeQty()" onchange="calculateTotalCostumeQty()">
+    </div>
+    <button type="button" class="btn btn-sm" onclick="removeCostumeSizeRow('${rowId}')" style="padding: 4px 8px; font-size: 12px; color: #ef4444; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; cursor: pointer;" title="Xóa dòng size này">
+      <i class="fa-solid fa-trash-can"></i>
+    </button>
+  `;
+
+  container.appendChild(row);
+
+  const selectEl = row.querySelector('.costume-size-select');
+  if (selectEl) {
+    if (selectedSize) {
+      selectEl.value = selectedSize;
+    } else if (sizesList.length > 0) {
+      selectEl.value = sizesList[0].name;
+    }
+  }
+
+  calculateTotalCostumeQty();
+}
+
+function removeCostumeSizeRow(rowId) {
+  const container = document.getElementById('costume-size-rows-container');
+  if (!container) return;
+  const row = document.getElementById(rowId);
+  if (row) row.remove();
+
+  if (container.children.length === 0) {
+    addCostumeSizeRow('FREE', 1);
+  } else {
+    calculateTotalCostumeQty();
+  }
+}
+
+function calculateTotalCostumeQty() {
+  const container = document.getElementById('costume-size-rows-container');
+  if (!container) return;
+
+  const rows = container.querySelectorAll('.costume-size-row');
+  let total = 0;
+  const sizeList = [];
+
+  rows.forEach(row => {
+    const sSelect = row.querySelector('.costume-size-select');
+    const qInput = row.querySelector('.costume-size-qty-input');
+    if (sSelect && qInput) {
+      const sVal = sSelect.value.trim();
+      const qVal = parseInt(qInput.value, 10) || 0;
+      total += qVal;
+      if (sVal && !sizeList.includes(sVal)) {
+        sizeList.push(sVal);
+      }
+    }
+  });
+
+  const badge = document.getElementById('costume-total-qty-badge');
+  if (badge) {
+    badge.innerText = `Tổng: ${total} bộ`;
+  }
+
+  const sizeHidden = document.getElementById('costume-size');
+  if (sizeHidden) {
+    sizeHidden.value = sizeList.join(', ') || 'FREE';
+  }
+  const qtyHidden = document.getElementById('costume-qty');
+  if (qtyHidden) {
+    qtyHidden.value = total || 1;
+  }
+}
+
+function formatCostumeSizeDisplay(item) {
+  let list = [];
+  if (Array.isArray(item.size_quantities) && item.size_quantities.length > 0) {
+    list = item.size_quantities;
+  } else if (typeof item.size_quantities === 'string' && item.size_quantities) {
+    try { list = JSON.parse(item.size_quantities); } catch(e) {}
+  }
+
+  if (list.length > 0) {
+    return list.map(sq => `${sq.size}: ${sq.total_qty || sq.available_qty || 1}`).join(' | ');
+  }
+  return item.size || 'FREE';
+}
+
 function applyCostumeFilters() {
   let result = costumesList;
 
@@ -543,7 +667,17 @@ function applyCostumeFilters() {
   }
 
   if (filteredSize !== 'ALL') {
-    result = result.filter(item => String(item.size).toLowerCase() === String(filteredSize).toLowerCase());
+    result = result.filter(item => {
+      if (item.size && String(item.size).toLowerCase().includes(String(filteredSize).toLowerCase())) {
+        return true;
+      }
+      let list = [];
+      if (Array.isArray(item.size_quantities)) list = item.size_quantities;
+      else if (typeof item.size_quantities === 'string' && item.size_quantities) {
+        try { list = JSON.parse(item.size_quantities); } catch(e) {}
+      }
+      return list.some(sq => String(sq.size).toLowerCase() === String(filteredSize).toLowerCase());
+    });
   }
 
   renderCostumesGrid(result);
@@ -559,7 +693,6 @@ function renderCostumesGrid(items) {
   }
 
   container.innerHTML = items.map(item => {
-    // Parse danh sách nhiều ảnh nếu có
     let imgList = [];
     if (Array.isArray(item.images)) imgList = item.images;
     else if (typeof item.images === 'string' && item.images) {
@@ -569,12 +702,13 @@ function renderCostumesGrid(items) {
 
     const mainCover = item.image_url || (imgList.length > 0 ? imgList[0] : 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60');
     const isAdmin = Boolean(currentUser);
+    const sizeDisplayStr = formatCostumeSizeDisplay(item);
 
     return `
       <div class="costume-card glass-card" onclick="openCostumeDetail(${item.id})" style="cursor: pointer;">
         <div class="costume-img-wrapper">
           <img src="${mainCover}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60'">
-          <span class="costume-badge-size">${item.size}</span>
+          <span class="costume-badge-size" style="max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${sizeDisplayStr}">${sizeDisplayStr}</span>
           ${imgList.length > 1 ? `<span style="position: absolute; bottom: 8px; left: 8px; background: rgba(15,23,42,0.75); color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-images"></i> ${imgList.length} ảnh</span>` : ''}
         </div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
@@ -611,7 +745,6 @@ function openCostumeDetail(id) {
   const item = costumesList.find(c => c.id === id);
   if (!item) return;
 
-  // Parse images
   let imgList = [];
   if (Array.isArray(item.images)) imgList = item.images;
   else if (typeof item.images === 'string' && item.images) {
@@ -628,13 +761,37 @@ function openCostumeDetail(id) {
   document.getElementById('detail-qty').innerText = `${item.available_qty} / ${item.total_qty} bộ sẵn sàng`;
   document.getElementById('detail-desc').innerText = item.description || 'Sản phẩm phục vụ biểu diễn sân khấu, nghệ thuật, múa dân tộc và sự kiện.';
 
+  // Render Size breakdown pills inside detail modal
+  const breakdownContainer = document.getElementById('detail-size-breakdown-container');
+  if (breakdownContainer) {
+    let list = [];
+    if (Array.isArray(item.size_quantities) && item.size_quantities.length > 0) {
+      list = item.size_quantities;
+    } else if (typeof item.size_quantities === 'string' && item.size_quantities) {
+      try { list = JSON.parse(item.size_quantities); } catch(e) {}
+    }
+
+    if (list.length > 0) {
+      breakdownContainer.innerHTML = list.map(sq => `
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: rgba(79,70,229,0.08); border: 1px solid rgba(79,70,229,0.2); color: var(--primary); border-radius: 8px; font-size: 12px; font-weight: 700;">
+          <i class="fa-solid fa-tag"></i> Size ${sq.size}: <strong>${sq.total_qty || sq.available_qty || 1} bộ</strong>
+        </span>
+      `).join('');
+    } else {
+      breakdownContainer.innerHTML = `
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: rgba(79,70,229,0.08); border: 1px solid rgba(79,70,229,0.2); color: var(--primary); border-radius: 8px; font-size: 12px; font-weight: 700;">
+          <i class="fa-solid fa-tag"></i> Size ${item.size || 'FREE'}: <strong>${item.total_qty || 1} bộ</strong>
+        </span>
+      `;
+    }
+  }
+
   const statusBadge = document.getElementById('detail-status');
   if (statusBadge) {
     statusBadge.className = `badge ${item.status === 'AVAILABLE' ? 'badge-success' : 'badge-danger'}`;
     statusBadge.innerText = item.status === 'AVAILABLE' ? 'Sẵn có' : 'Hết đồ';
   }
 
-  // Set Main image & Thumbnails
   const fallbackImg = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60';
   const mainImgEl = document.getElementById('detail-main-img');
   mainImgEl.src = mainCover;
@@ -661,7 +818,6 @@ function openCostumeModalForCreate() {
   resetCostumeForm();
   renderCategoryDropdown();
   renderTypeDropdown();
-  renderSizeDropdown();
   document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
   openModal('modal-costume');
 }
@@ -796,13 +952,32 @@ async function saveCostume(e) {
   const token = localStorage.getItem('tpbd_token');
 
   const id = document.getElementById('costume-id').value;
+
+  // Collect size_quantities array
+  const container = document.getElementById('costume-size-rows-container');
+  const sizeRows = container ? container.querySelectorAll('.costume-size-row') : [];
+  const size_quantities = [];
+
+  sizeRows.forEach(row => {
+    const sSelect = row.querySelector('.costume-size-select');
+    const qInput = row.querySelector('.costume-size-qty-input');
+    if (sSelect && qInput) {
+      const size = sSelect.value.trim();
+      const qty = parseInt(qInput.value, 10) || 1;
+      if (size) {
+        size_quantities.push({ size, total_qty: qty, available_qty: qty });
+      }
+    }
+  });
+
   const costumeData = {
     name: document.getElementById('costume-name').value.trim(),
     code: document.getElementById('costume-code').value.trim(),
     category_id: parseInt(document.getElementById('costume-category').value, 10),
     type: document.getElementById('costume-type').value,
     size: document.getElementById('costume-size').value,
-    total_qty: parseInt(document.getElementById('costume-qty').value, 10),
+    total_qty: parseInt(document.getElementById('costume-qty').value, 10) || 1,
+    size_quantities: size_quantities,
     price_per_day: parseFloat(document.getElementById('costume-price').value),
     deposit_fee: 0,
     image_url: currentCoverImage || (currentFormImages.length > 0 ? currentFormImages[0] : ''),
@@ -841,6 +1016,13 @@ function resetCostumeForm() {
   currentFormImages = [];
   currentCoverImage = '';
   renderGalleryThumbnails();
+
+  const container = document.getElementById('costume-size-rows-container');
+  if (container) {
+    container.innerHTML = '';
+    addCostumeSizeRow('FREE', 1);
+  }
+
   const statusText = document.getElementById('upload-status-text');
   if (statusText) statusText.innerText = '';
   const delBtn = document.getElementById('btn-delete-costume');
@@ -853,7 +1035,6 @@ function editCostume(id) {
 
   renderCategoryDropdown(item.category_id);
   renderTypeDropdown(item.type);
-  renderSizeDropdown(item.size);
 
   document.getElementById('costume-id').value = item.id;
   document.getElementById('costume-name').value = item.name;
@@ -862,10 +1043,35 @@ function editCostume(id) {
     document.getElementById('costume-category').value = item.category_id || (categoriesList[0] ? categoriesList[0].id : 1);
   }
   document.getElementById('costume-type').value = item.type || 'COSTUME';
-  document.getElementById('costume-size').value = item.size || 'FREE';
-  document.getElementById('costume-qty').value = item.total_qty;
   document.getElementById('costume-price').value = item.price_per_day;
   document.getElementById('costume-desc').value = item.description || '';
+
+  // Parse size breakdown
+  const container = document.getElementById('costume-size-rows-container');
+  if (container) {
+    container.innerHTML = '';
+    let sizeQtyList = [];
+    if (Array.isArray(item.size_quantities) && item.size_quantities.length > 0) {
+      sizeQtyList = item.size_quantities;
+    } else if (typeof item.size_quantities === 'string' && item.size_quantities) {
+      try { sizeQtyList = JSON.parse(item.size_quantities); } catch(e) {}
+    }
+
+    if (sizeQtyList.length > 0) {
+      sizeQtyList.forEach(sq => {
+        addCostumeSizeRow(sq.size, sq.total_qty || sq.available_qty || 1);
+      });
+    } else {
+      const rawSizes = (item.size || 'FREE').split(',').map(s => s.trim()).filter(Boolean);
+      if (rawSizes.length > 1) {
+        rawSizes.forEach(sName => {
+          addCostumeSizeRow(sName, 1);
+        });
+      } else {
+        addCostumeSizeRow(item.size || 'FREE', item.total_qty || 1);
+      }
+    }
+  }
 
   // Parse images array
   let imgList = [];

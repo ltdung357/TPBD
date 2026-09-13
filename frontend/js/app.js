@@ -76,8 +76,12 @@ async function checkAuth() {
 
 function updateUserUI() {
   const userProfileArea = document.getElementById('user-profile-area');
-  const mobileHeaderUser = document.getElementById('mobile-header-user');
+  const mobileUserIcon = document.getElementById('mobile-user-icon');
+  const mobileUserLabel = document.getElementById('mobile-user-label');
   const adminElements = document.querySelectorAll('.admin-only');
+
+  const accountUserInfo = document.getElementById('account-page-user-info');
+  const accountAuthAction = document.getElementById('account-page-auth-action');
 
   if (currentUser) {
     // Mode Admin / Staff
@@ -95,14 +99,28 @@ function updateUserUI() {
         </button>
       `;
     }
-    if (mobileHeaderUser) {
-      mobileHeaderUser.innerHTML = `
-        <button class="btn btn-secondary btn-sm" onclick="logout()" title="Đăng xuất">
-          <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+    if (mobileUserIcon) mobileUserIcon.className = 'fa-solid fa-user';
+    if (mobileUserLabel) mobileUserLabel.innerText = 'Tôi';
+    adminElements.forEach(el => el.style.display = '');
+
+    if (accountUserInfo) {
+      accountUserInfo.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div class="avatar-circle" style="width: 50px; height: 50px; font-size: 20px; background: var(--primary); color: #fff;">${(currentUser.name || 'A').charAt(0).toUpperCase()}</div>
+          <div>
+            <h4 style="font-size: 16px; font-weight: 800; color: var(--text-heading); margin: 0;">${currentUser.name}</h4>
+            <span class="badge badge-success" style="margin-top: 4px; font-size: 11px;">${currentUser.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên'}</span>
+          </div>
+        </div>
+      `;
+    }
+    if (accountAuthAction) {
+      accountAuthAction.innerHTML = `
+        <button type="button" class="btn btn-danger" onclick="logout()" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 14px; border-radius: 12px;">
+          <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất Tài Khoản
         </button>
       `;
     }
-    adminElements.forEach(el => el.style.display = '');
   } else {
     // Mode Khách Xem Trang Phục (Guest)
     if (userProfileArea) {
@@ -112,15 +130,33 @@ function updateUserUI() {
         </a>
       `;
     }
-    if (mobileHeaderUser) {
-      mobileHeaderUser.innerHTML = `
-        <a href="login.html" class="btn btn-primary btn-sm" style="text-decoration: none;">
-          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Quản Lý
+    if (mobileUserIcon) mobileUserIcon.className = 'fa-solid fa-user';
+    if (mobileUserLabel) mobileUserLabel.innerText = 'Tôi';
+    adminElements.forEach(el => el.style.display = 'none');
+
+    if (accountUserInfo) {
+      accountUserInfo.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div class="avatar-circle" style="width: 50px; height: 50px; font-size: 20px; background: #94a3b8; color: #fff;"><i class="fa-solid fa-user"></i></div>
+          <div>
+            <h4 style="font-size: 15px; font-weight: 800; color: var(--text-heading); margin: 0;">Khách Hàng Xem Trang Phục</h4>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 3px 0 0 0;">Bạn đang xem bộ sưu tập trang phục & đạo cụ</p>
+          </div>
+        </div>
+      `;
+    }
+    if (accountAuthAction) {
+      accountAuthAction.innerHTML = `
+        <a href="login.html" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; text-decoration: none; padding: 12px; font-size: 14px; border-radius: 12px;">
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Quản Lý Hệ Thống
         </a>
       `;
     }
-    adminElements.forEach(el => el.style.display = 'none');
   }
+}
+
+function handleMobileUserAction() {
+  navigateTo('account');
 }
 
 function logout() {
@@ -141,11 +177,14 @@ function navigateTo(sectionId) {
     return;
   }
 
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
 
-  const navLink = document.querySelector(`.nav-item[href="#${sectionId}"]`);
-  if (navLink) navLink.classList.add('active');
+  const sidebarLink = document.querySelector(`.nav-item[href="#${sectionId}"]`);
+  if (sidebarLink) sidebarLink.classList.add('active');
+
+  const mobileLink = document.querySelector(`.mobile-nav-item[href="#${sectionId}"]`);
+  if (mobileLink) mobileLink.classList.add('active');
 
   const section = document.getElementById(`section-${sectionId}`);
   if (section) section.classList.add('active');
@@ -155,7 +194,8 @@ function navigateTo(sectionId) {
     dashboard: 'Tổng Quan Hệ Thống Quản Lý',
     costumes: 'Bộ Sưu Tập Trang Phục & Đạo Cụ Biểu Diễn',
     rentals: 'Quản Lý Đơn Thuê Trang Phục',
-    customers: 'Danh Sách Khách Hàng & Đoàn Diễn'
+    customers: 'Danh Sách Khách Hàng & Đoàn Diễn',
+    account: 'Thông Tin Tài Khoản & Trung Tâm Trợ Giúp'
   };
   const titleEl = document.getElementById('header-page-title');
   if (titleEl) titleEl.innerText = titles[sectionId] || 'Trang Phục Biểu Diễn Thúy Hà';
