@@ -288,7 +288,16 @@ router.post('/', verifyToken, async (req, res) => {
 
   try {
     const pool = getPool();
-    const generatedCode = code || 'TP-' + Math.floor(1000 + Math.random() * 9000);
+    let generatedCode = (code || '').trim().toUpperCase();
+
+    if (generatedCode) {
+      const checkCode = await pool.query('SELECT id, name FROM costumes WHERE UPPER(code) = UPPER($1)', [generatedCode]);
+      if (checkCode.rows.length > 0) {
+        return res.status(400).json({ message: `Mã sản phẩm "${generatedCode}" đã bị trùng với mẫu "${checkCode.rows[0].name}"!` });
+      }
+    } else {
+      generatedCode = 'TP-' + Math.floor(1000 + Math.random() * 9000);
+    }
     const imagesArr = Array.isArray(images) ? images : (typeof images === 'string' && images ? JSON.parse(images) : []);
     
     let sizeQuantitiesArr = Array.isArray(size_quantities) ? size_quantities : (typeof size_quantities === 'string' && size_quantities ? JSON.parse(size_quantities) : []);

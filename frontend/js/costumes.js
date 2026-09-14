@@ -1010,6 +1010,15 @@ function resetCostumeForm() {
   currentCoverImage = '';
   renderGalleryThumbnails();
 
+  const suggestionsBox = document.getElementById('costume-name-suggestions');
+  const warningBox = document.getElementById('costume-duplicate-warning');
+  const codeWarningBox = document.getElementById('costume-code-duplicate-warning');
+  if (suggestionsBox) suggestionsBox.style.display = 'none';
+  if (warningBox) warningBox.style.display = 'none';
+  if (codeWarningBox) codeWarningBox.style.display = 'none';
+  const codeInput = document.getElementById('costume-code');
+  if (codeInput) codeInput.style.borderColor = '';
+
   const container = document.getElementById('costume-size-rows-container');
   if (container) {
     container.innerHTML = '';
@@ -1025,6 +1034,15 @@ function resetCostumeForm() {
 function editCostume(id) {
   const item = costumesList.find(c => c.id === id);
   if (!item) return;
+
+  const suggestionsBox = document.getElementById('costume-name-suggestions');
+  const warningBox = document.getElementById('costume-duplicate-warning');
+  const codeWarningBox = document.getElementById('costume-code-duplicate-warning');
+  if (suggestionsBox) suggestionsBox.style.display = 'none';
+  if (warningBox) warningBox.style.display = 'none';
+  if (codeWarningBox) codeWarningBox.style.display = 'none';
+  const codeInput = document.getElementById('costume-code');
+  if (codeInput) codeInput.style.borderColor = '';
 
   renderCategoryDropdown(item.category_id);
   renderTypeDropdown(item.type);
@@ -1085,6 +1103,153 @@ function editCostume(id) {
 
   openModal('modal-costume');
 }
+
+// ====== SMART DUPLICATE CONTROL & AUTOCOMPLETE SUGGESTIONS ======
+
+function handleCostumeNameInput(inputEl) {
+  const query = inputEl.value.trim();
+  const currentId = document.getElementById('costume-id')?.value;
+  const suggestionsBox = document.getElementById('costume-name-suggestions');
+  const warningBox = document.getElementById('costume-duplicate-warning');
+
+  if (!query || !costumesList || costumesList.length === 0) {
+    if (suggestionsBox) suggestionsBox.style.display = 'none';
+    if (warningBox) warningBox.style.display = 'none';
+    return;
+  }
+
+  const queryLower = query.toLowerCase();
+
+  const matches = costumesList.filter(item => {
+    if (currentId && String(item.id) === String(currentId)) return false;
+    const nameLower = (item.name || '').toLowerCase();
+    const codeLower = (item.code || '').toLowerCase();
+    return nameLower.includes(queryLower) || codeLower.includes(queryLower);
+  });
+
+  const exactMatch = matches.find(item => item.name.trim().toLowerCase() === queryLower);
+
+  if (warningBox) {
+    if (exactMatch) {
+      warningBox.style.display = 'block';
+      warningBox.style.background = 'rgba(239, 68, 68, 0.12)';
+      warningBox.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+      warningBox.style.color = '#dc2626';
+      warningBox.innerHTML = `
+        <div style="font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span><i class="fa-solid fa-triangle-exclamation"></i> Tên mẫu này <b>ĐÃ TỒN TẠI</b> trong kho (Mã: <strong>${exactMatch.code}</strong>)!</span>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="editCostumeFromSuggestion(${exactMatch.id})" style="padding: 2px 8px; font-size: 11px; font-weight: 700; white-space: nowrap;">
+            <i class="fa-solid fa-pen"></i> Mở Mẫu Cũ
+          </button>
+        </div>
+      `;
+    } else if (matches.length > 0) {
+      warningBox.style.display = 'block';
+      warningBox.style.background = 'rgba(245, 158, 11, 0.12)';
+      warningBox.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+      warningBox.style.color = '#b45309';
+      warningBox.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span>💡 Tìm thấy ${matches.length} mẫu tương tự: <strong>"${matches[0].name}"</strong> (Mã: ${matches[0].code})</span>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="editCostumeFromSuggestion(${matches[0].id})" style="padding: 2px 8px; font-size: 11px; font-weight: 700; white-space: nowrap;">
+            <i class="fa-solid fa-pen"></i> Mở Mẫu Cũ
+          </button>
+        </div>
+      `;
+    } else {
+      warningBox.style.display = 'none';
+    }
+  }
+
+  if (suggestionsBox) {
+    if (matches.length > 0) {
+      suggestionsBox.style.display = 'block';
+      suggestionsBox.innerHTML = matches.slice(0, 5).map(item => `
+        <div class="suggestion-item" onclick="selectCostumeNameSuggestion(${item.id})" style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+          <div>
+            <strong style="font-size: 13px; color: var(--text-heading); display: block;">${item.name}</strong>
+            <small style="font-size: 11px; color: var(--text-muted);">Mã: <code>${item.code}</code> | Giá: ${formatVND(item.price_per_day)}</small>
+          </div>
+          <span class="badge badge-info" style="font-size: 10px;"><i class="fa-solid fa-pen-to-square"></i> Xem/Sửa</span>
+        </div>
+      `).join('');
+    } else {
+      suggestionsBox.style.display = 'none';
+    }
+  }
+}
+
+function handleCostumeCodeInput(inputEl) {
+  const codeVal = inputEl.value.trim().toUpperCase();
+  const currentId = document.getElementById('costume-id')?.value;
+  const warningEl = document.getElementById('costume-code-duplicate-warning');
+
+  if (!codeVal || !costumesList) {
+    if (warningEl) warningEl.style.display = 'none';
+    inputEl.style.borderColor = '';
+    return;
+  }
+
+  const existing = costumesList.find(item => {
+    if (currentId && String(item.id) === String(currentId)) return false;
+    return (item.code || '').trim().toUpperCase() === codeVal;
+  });
+
+  if (existing) {
+    if (warningEl) {
+      warningEl.style.display = 'block';
+      warningEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Mã <strong>${codeVal}</strong> đã bị trùng với mẫu "${existing.name}"!`;
+    }
+    inputEl.style.borderColor = '#ef4444';
+  } else {
+    if (warningEl) warningEl.style.display = 'none';
+    inputEl.style.borderColor = '';
+  }
+}
+
+function selectCostumeNameSuggestion(id) {
+  const suggestionsBox = document.getElementById('costume-name-suggestions');
+  if (suggestionsBox) suggestionsBox.style.display = 'none';
+  editCostumeFromSuggestion(id);
+}
+
+function editCostumeFromSuggestion(id) {
+  const suggestionsBox = document.getElementById('costume-name-suggestions');
+  const warningBox = document.getElementById('costume-duplicate-warning');
+  if (suggestionsBox) suggestionsBox.style.display = 'none';
+  if (warningBox) warningBox.style.display = 'none';
+
+  editCostume(id);
+  showToast('Đã chuyển sang chỉnh sửa mẫu trang phục sẵn có!', 'info');
+}
+
+function generateAutoCostumeCode() {
+  let nextNum = 1001;
+  if (costumesList && costumesList.length > 0) {
+    const existingNums = costumesList.map(c => {
+      const numMatch = (c.code || '').match(/\d+/);
+      return numMatch ? parseInt(numMatch[0], 10) : 0;
+    });
+    const maxNum = Math.max(0, ...existingNums);
+    nextNum = maxNum >= 1000 ? maxNum + 1 : 1001;
+  }
+
+  const newCode = `TP-${nextNum}`;
+  const codeInput = document.getElementById('costume-code');
+  if (codeInput) {
+    codeInput.value = newCode;
+    handleCostumeCodeInput(codeInput);
+    showToast(`Đã tự động tạo mã sản phẩm: ${newCode}`, 'success');
+  }
+}
+
+document.addEventListener('click', function(e) {
+  const input = document.getElementById('costume-name');
+  const suggestions = document.getElementById('costume-name-suggestions');
+  if (suggestions && input && !input.contains(e.target) && !suggestions.contains(e.target)) {
+    suggestions.style.display = 'none';
+  }
+});
 
 // Hàm xóa sản phẩm từ danh sách card
 async function deleteCostume(id) {

@@ -470,13 +470,21 @@
       <form id="form-costume" onsubmit="saveCostume(event)">
         <input type="hidden" id="costume-id">
         <div class="form-row">
-          <div class="form-group">
+          <div class="form-group" style="position: relative;">
             <label>Tên Sản Phẩm *</label>
-            <input type="text" id="costume-name" class="form-control" placeholder="Áo Dài Múa Hoa Sen Hồng" required>
+            <input type="text" id="costume-name" class="form-control" placeholder="Áo Dài Múa Hoa Sen Hồng" required oninput="handleCostumeNameInput(this)" autocomplete="off">
+            <div id="costume-name-suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; background: #ffffff; border: 1px solid var(--primary); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); max-height: 220px; overflow-y: auto; margin-top: 2px;"></div>
+            <div id="costume-duplicate-warning" style="display: none; margin-top: 6px; padding: 8px 12px; border-radius: 8px; font-size: 12px;"></div>
           </div>
-          <div class="form-group">
-            <label>Mã Sản Phẩm</label>
-            <input type="text" id="costume-code" class="form-control" placeholder="Tự tạo nếu để trống">
+          <div class="form-group" style="position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="margin-bottom: 0;">Mã Sản Phẩm</label>
+              <button type="button" class="btn btn-sm btn-secondary" onclick="generateAutoCostumeCode()" style="padding: 1px 6px; font-size: 10px; font-weight: 700; border-radius: 4px; color: var(--primary);">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo mã tự động
+              </button>
+            </div>
+            <input type="text" id="costume-code" class="form-control" placeholder="Tự tạo nếu để trống" oninput="handleCostumeCodeInput(this)">
+            <div id="costume-code-duplicate-warning" style="display: none; margin-top: 4px; font-size: 11px; color: #ef4444; font-weight: 700;"></div>
           </div>
         </div>
 
@@ -1084,10 +1092,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=44.0"></script>
-  <script src="js/costumes.js?v=44.0"></script>
-  <script src="js/rentals.js?v=44.0"></script>
-  <script src="js/customers.js?v=44.0"></script>
-  <script src="js/reports.js?v=44.0"></script>
+  <script src="js/app.js?v=45.0"></script>
+  <script src="js/costumes.js?v=45.0"></script>
+  <script src="js/rentals.js?v=45.0"></script>
+  <script src="js/customers.js?v=45.0"></script>
+  <script src="js/reports.js?v=45.0"></script>
 </body>
 </html>
