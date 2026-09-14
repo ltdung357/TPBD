@@ -283,7 +283,7 @@ router.post('/', verifyToken, async (req, res) => {
   } = req.body;
 
   if (!name || !price_per_day) {
-    return res.status(400).json({ message: 'Vui lòng nhập Tên sản phẩm và Giá thuê/ngày!' });
+    return res.status(400).json({ message: 'Vui lòng nhập Tên sản phẩm và Giá thuê!' });
   }
 
   try {

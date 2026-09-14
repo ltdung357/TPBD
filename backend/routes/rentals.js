@@ -101,7 +101,7 @@ router.post('/', verifyToken, async (req, res) => {
       const costume = costumeRes.rows[0];
       const qty = parseInt(item.qty || 1, 10);
 
-      const itemTotal = parseFloat(costume.price_per_day) * qty * daysCount;
+      const itemTotal = parseFloat(costume.price_per_day) * qty;
       totalAmount += itemTotal;
       if (!deposit_amount) {
         totalDeposit += parseFloat(costume.deposit_fee || 0) * qty;
@@ -203,7 +203,7 @@ router.put('/:id', verifyToken, async (req, res) => {
       const itemsRes = await client.query(`SELECT * FROM rental_items WHERE rental_id = $1`, [id]);
       let calcTotal = 0;
       for (const item of itemsRes.rows) {
-        const itemTotal = parseFloat(item.price_per_day) * parseInt(item.qty, 10) * daysCount;
+        const itemTotal = parseFloat(item.price_per_day) * parseInt(item.qty, 10);
         calcTotal += itemTotal;
         await client.query(
           `UPDATE rental_items SET days_count = $1, item_total = $2 WHERE id = $3`,

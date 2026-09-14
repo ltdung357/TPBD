@@ -722,7 +722,7 @@ function renderCostumesGrid(items) {
           <span>Kho: <strong>${item.available_qty} / ${item.total_qty}</strong></span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-          <span class="costume-price">${formatVND(item.price_per_day)} <small style="font-size: 10px; color: var(--text-muted); font-weight: normal;">/ ngày</small></span>
+          <span class="costume-price">${formatVND(item.price_per_day)}</span>
           ${isAdmin ? `
             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editCostume(${item.id})">
               <i class="fa-solid fa-pen"></i> Sửa
@@ -751,7 +751,7 @@ function openCostumeDetail(id) {
   document.getElementById('detail-title').innerText = item.name;
   document.getElementById('detail-code').innerText = `Mã sản phẩm: ${item.code}`;
   document.getElementById('detail-size-badge').innerText = item.size || 'FREE';
-  document.getElementById('detail-price').innerHTML = `${formatVND(item.price_per_day)} <small style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/ ngày</small>`;
+  document.getElementById('detail-price').innerText = formatVND(item.price_per_day);
   document.getElementById('detail-qty').innerText = `${item.available_qty} / ${item.total_qty} bộ sẵn sàng`;
   document.getElementById('detail-desc').innerText = item.description || 'Sản phẩm phục vụ biểu diễn sân khấu, nghệ thuật, múa dân tộc và sự kiện.';
 
