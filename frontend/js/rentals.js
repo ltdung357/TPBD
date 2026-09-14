@@ -1,17 +1,60 @@
 // ====== RENTALS MODULE ======
 
 let rentalsList = [];
+let rentalFilter = { status: 'ALL', pay: 'ALL' };
 
 async function loadRentals(searchQuery = '') {
   try {
     const res = await fetch(`/api/rentals?search=${encodeURIComponent(searchQuery)}`);
     rentalsList = await res.json();
-
-    renderRentalsTable(rentalsList);
+    applyRentalFilter();
   } catch (err) {
     showToast('Lỗi khi tải danh sách đơn thuê: ' + err.message, 'error');
   }
 }
+
+// Set active filter chip and re-render
+function setRentalFilter(type, value) {
+  rentalFilter[type] = value;
+
+  // Update active chip for status group
+  if (type === 'status') {
+    document.querySelectorAll('#rental-filter-status .rental-filter-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.status === value);
+    });
+  }
+  // Update active chip for payment group
+  if (type === 'pay') {
+    document.querySelectorAll('#rental-filter-payment .rental-filter-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.pay === value);
+    });
+  }
+
+  applyRentalFilter();
+}
+
+// Apply current filters to rentalsList and render
+function applyRentalFilter() {
+  let filtered = rentalsList;
+
+  if (rentalFilter.status !== 'ALL') {
+    filtered = filtered.filter(o => o.status === rentalFilter.status);
+  }
+  if (rentalFilter.pay === 'PAID') {
+    filtered = filtered.filter(o => !!o.is_paid);
+  } else if (rentalFilter.pay === 'UNPAID') {
+    filtered = filtered.filter(o => !o.is_paid);
+  }
+
+  // Update count badge
+  const countEl = document.getElementById('rental-filter-count');
+  if (countEl) {
+    countEl.textContent = filtered.length > 0 ? `${filtered.length} đơn` : 'Không có đơn';
+  }
+
+  renderRentalsTable(filtered);
+}
+
 
 function renderRentalsTable(orders) {
   const tbody = document.getElementById('tbl-rentals-list');

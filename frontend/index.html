@@ -112,6 +112,34 @@
         display: none !important;
       }
     }
+
+    /* Rental Filter Chips */
+    .rental-filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border, #e2e8f0);
+      background: transparent;
+      color: var(--text-muted, #64748b);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .rental-filter-chip:hover {
+      border-color: var(--primary, #6366f1);
+      color: var(--primary, #6366f1);
+      background: rgba(99,102,241,0.06);
+    }
+    .rental-filter-chip.active {
+      background: var(--primary, #6366f1);
+      border-color: var(--primary, #6366f1);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -287,6 +315,48 @@
             </button>
           </div>
 
+          <!-- Filter Bar -->
+          <div class="glass-panel" style="padding: 10px 14px; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-heading); white-space: nowrap; display: flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-filter" style="color: var(--primary);"></i> Lọc:
+            </span>
+
+            <!-- Status Filter Chips -->
+            <div id="rental-filter-status" style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button class="rental-filter-chip active" data-status="ALL" onclick="setRentalFilter('status','ALL')">
+                Tất cả
+              </button>
+              <button class="rental-filter-chip" data-status="RENTED" onclick="setRentalFilter('status','RENTED')">
+                <i class="fa-solid fa-truck-fast"></i> Đang thuê
+              </button>
+              <button class="rental-filter-chip" data-status="OVERDUE" onclick="setRentalFilter('status','OVERDUE')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Quá hạn
+              </button>
+              <button class="rental-filter-chip" data-status="RETURNED" onclick="setRentalFilter('status','RETURNED')">
+                <i class="fa-solid fa-circle-check"></i> Đã trả đồ
+              </button>
+            </div>
+
+            <!-- Divider -->
+            <div style="width: 1px; height: 22px; background: var(--border); flex-shrink: 0;"></div>
+
+            <!-- Payment Filter Chips -->
+            <div id="rental-filter-payment" style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button class="rental-filter-chip active" data-pay="ALL" onclick="setRentalFilter('pay','ALL')">
+                Mọi TT
+              </button>
+              <button class="rental-filter-chip" data-pay="UNPAID" onclick="setRentalFilter('pay','UNPAID')">
+                <i class="fa-solid fa-clock"></i> Chưa TT
+              </button>
+              <button class="rental-filter-chip" data-pay="PAID" onclick="setRentalFilter('pay','PAID')">
+                <i class="fa-solid fa-circle-check"></i> Đã TT
+              </button>
+            </div>
+
+            <!-- Result count -->
+            <span id="rental-filter-count" style="margin-left: auto; font-size: 11px; font-weight: 700; color: var(--text-muted); white-space: nowrap;"></span>
+          </div>
+
           <div class="glass-panel" style="padding: 20px;">
             <div class="table-responsive desktop-only-table">
               <table class="data-table">
@@ -299,7 +369,7 @@
                     <th>Ngày Trả</th>
                     <th>Tổng Tiền Thuê</th>
                     <th>Thanh Toán</th>
-                    <th>Tiền Cọc</th>
+                    <th>Tiền Cọ</th>
                     <th>Trạng Thái</th>
                     <th>Thao Tác</th>
                   </tr>
