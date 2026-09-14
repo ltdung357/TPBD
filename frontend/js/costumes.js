@@ -708,7 +708,6 @@ function renderCostumesGrid(items) {
       <div class="costume-card glass-card" onclick="openCostumeDetail(${item.id})" style="cursor: pointer;">
         <div class="costume-img-wrapper">
           <img src="${mainCover}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60'">
-          <span class="costume-badge-size" style="max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${sizeDisplayStr}">${sizeDisplayStr}</span>
           ${imgList.length > 1 ? `<span style="position: absolute; bottom: 8px; left: 8px; background: rgba(15,23,42,0.75); color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-images"></i> ${imgList.length} ảnh</span>` : ''}
         </div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
