@@ -326,6 +326,18 @@ body {
   background: #e2e8f0;
 }
 
+.btn-outline {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  font-weight: 700;
+}
+
+.btn-outline:hover {
+  background: rgba(99, 102, 241, 0.18);
+  transform: translateY(-1px);
+}
+
 .btn-success {
   background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;

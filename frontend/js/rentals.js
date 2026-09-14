@@ -49,6 +49,9 @@ function renderRentalsTable(orders) {
         <td>${formatVND(order.deposit_amount)}</td>
         <td>${getRentalStatusBadge(order.status)}</td>
         <td style="display: flex; gap: 6px; flex-wrap: wrap;" onclick="event.stopPropagation()">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); exportRentalInvoice(${order.id})" title="Xuất hóa đơn PDF">
+            <i class="fa-solid fa-file-pdf"></i> In Hóa Đơn
+          </button>
           ${!order.is_paid ? `
             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateRentalPayment(${order.id}, true)" title="Xác nhận khách đã thanh toán tiền thuê">
               <i class="fa-solid fa-hand-holding-dollar"></i> Đã Trả Tiền
@@ -125,6 +128,9 @@ function renderRentalsTable(orders) {
           </div>
 
           <div style="display: flex; gap: 6px; flex-wrap: wrap;" onclick="event.stopPropagation()">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); exportRentalInvoice(${order.id})" style="padding: 6px 10px; font-size: 12px;" title="Xuất hóa đơn PDF">
+              <i class="fa-solid fa-file-pdf"></i> In Hóa Đơn
+            </button>
             ${!order.is_paid ? `
               <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateRentalPayment(${order.id}, true)" style="padding: 6px 10px; font-size: 12px;" title="Xác nhận khách đã thanh toán">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Đã Trả Tiền
@@ -621,7 +627,11 @@ async function openOrderDetailModal(id) {
 
     // Actions Footer
     const footer = document.getElementById('detail-actions-footer');
-    let actionsHTML = '';
+    let actionsHTML = `
+      <button class="btn btn-outline btn-sm" onclick="exportRentalInvoice(${order.id})">
+        <i class="fa-solid fa-file-pdf"></i> In / Xuất Hóa Đơn (PDF)
+      </button>
+    `;
 
     if (!order.is_paid) {
       actionsHTML += `
@@ -707,6 +717,342 @@ async function submitReturnRental(e) {
     closeModal('modal-return-rental');
     loadRentals();
     if (typeof loadDashboardStats === 'function') loadDashboardStats();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// Convert number to Vietnamese text for invoice total amount
+function docSoThanhChu(number) {
+  if (!number || number === 0) return 'Không đồng.';
+  const chuSo = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+
+  function readGroup(group, isHighest) {
+    let read = '';
+    const tr = Math.floor(group / 100);
+    const ch = Math.floor((group % 100) / 10);
+    const dv = group % 10;
+    if (tr === 0 && ch === 0 && dv === 0) return '';
+    if (tr !== 0) {
+      read += chuSo[tr] + ' trăm ';
+      if (ch === 0 && dv !== 0) read += 'lẻ ';
+    } else if (!isHighest && (ch !== 0 || dv !== 0)) {
+      read += 'không trăm ';
+    }
+
+    if (ch > 1) {
+      read += chuSo[ch] + ' mươi ';
+      if (dv === 1) read += 'mốt ';
+      else if (dv === 5) read += 'lăm ';
+      else if (dv > 0) read += chuSo[dv] + ' ';
+    } else if (ch === 1) {
+      read += 'mười ';
+      if (dv === 1) read += 'một ';
+      else if (dv === 5) read += 'lăm ';
+      else if (dv > 0) read += chuSo[dv] + ' ';
+    } else if (ch === 0 && dv > 0) {
+      read += chuSo[dv] + ' ';
+    }
+    return read;
+  }
+
+  let numStr = Math.floor(Math.abs(number)).toString();
+  let groups = [];
+  while (numStr.length > 0) {
+    groups.unshift(parseInt(numStr.slice(-3), 10));
+    numStr = numStr.slice(0, -3);
+  }
+
+  const units = ['', 'nghìn', 'triệu', 'tỷ', 'nghìn tỷ', 'triệu tỷ'];
+  let result = '';
+  let totalGroups = groups.length;
+
+  for (let i = 0; i < totalGroups; i++) {
+    let group = groups[i];
+    let unitIndex = totalGroups - 1 - i;
+    if (group > 0) {
+      let isHighest = (i === 0);
+      let gText = readGroup(group, isHighest);
+      result += gText + (units[unitIndex] ? units[unitIndex] + ' ' : '');
+    }
+  }
+
+  result = result.trim().replace(/\s+/g, ' ');
+  if (!result) return 'Không đồng.';
+  return result.charAt(0).toUpperCase() + result.slice(1) + ' đồng.';
+}
+
+// Export Rental Invoice matching Hoa_Don_Ban_Hang_Le.XLS template 100%
+async function exportRentalInvoice(id) {
+  try {
+    const res = await fetch(`/api/rentals/${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tải chi tiết đơn thuê!');
+
+    const { order, items } = data;
+    const orderDate = new Date(order.rental_start || order.created_at || Date.now());
+    const day = String(orderDate.getDate()).padStart(2, '0');
+    const month = String(orderDate.getMonth() + 1).padStart(2, '0');
+    const year = orderDate.getFullYear();
+
+    const maxRows = 12; // Padded to 12 rows matching Excel template exactly
+    let rowsHTML = '';
+    
+    for (let i = 0; i < maxRows; i++) {
+      const item = items && items[i] ? items[i] : null;
+      if (item) {
+        rowsHTML += `
+          <tr>
+            <td style="text-align: center;">${i + 1}</td>
+            <td style="text-align: left; font-weight: bold;">${item.costume_name} ${item.size ? `(Size: ${item.size})` : ''}</td>
+            <td style="text-align: center;">${item.qty}</td>
+            <td style="text-align: right;">${formatVND(item.price_per_day).replace(' đ', '')}</td>
+            <td style="text-align: right; font-weight: bold;">${formatVND(item.item_total).replace(' đ', '')}</td>
+          </tr>
+        `;
+      } else {
+        rowsHTML += `
+          <tr>
+            <td style="text-align: center; color: #ccc;">${i + 1}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        `;
+      }
+    }
+
+    const totalAmountNum = parseFloat(order.total_amount || 0);
+    const amountInWords = docSoThanhChu(totalAmountNum);
+
+    const invoiceHTML = `
+      <!DOCTYPE html>
+      <html lang="vi">
+      <head>
+        <meta charset="UTF-8">
+        <title>Hóa Đơn Bán Hàng - ${order.order_code}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm;
+          }
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+            -webkit-print-color-adjust: exact;
+          }
+          .invoice-box {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 24px;
+          }
+          
+          .store-header {
+            width: 100%;
+            margin-bottom: 24px;
+          }
+          .store-header table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .brand-col {
+            width: 42%;
+            text-align: center;
+            vertical-align: top;
+          }
+          .brand-title-sm {
+            font-family: 'Bookman Old Style', Georgia, serif;
+            font-size: 15pt;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+          }
+          .brand-title-lg {
+            font-family: 'Bookman Old Style', Georgia, serif;
+            font-size: 32pt;
+            font-weight: bold;
+            margin-top: 6px;
+            letter-spacing: 1px;
+          }
+          .info-col {
+            width: 58%;
+            font-size: 12.5pt;
+            font-weight: bold;
+            line-height: 1.6;
+            vertical-align: top;
+            padding-left: 20px;
+          }
+
+          .cust-info-section {
+            font-size: 14.5pt;
+            line-height: 2;
+            margin-bottom: 20px;
+          }
+          .dotted-line {
+            display: inline-block;
+            border-bottom: 1px dotted #000;
+            min-width: 300px;
+            font-weight: bold;
+            padding-left: 10px;
+          }
+
+          .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          .items-table th, .items-table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 13.5pt;
+            height: 28px;
+          }
+          .items-table th {
+            font-weight: bold;
+            text-align: center;
+            background-color: #f2f2f2;
+          }
+
+          .total-cell-label {
+            font-weight: bold;
+            text-align: center;
+            font-size: 14pt;
+          }
+          .total-cell-value {
+            font-weight: bold;
+            text-align: right;
+            font-size: 14.5pt;
+          }
+
+          .words-section {
+            font-size: 14pt;
+            margin-top: 15px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+          }
+
+          .footer-section {
+            width: 100%;
+            margin-top: 20px;
+          }
+          .footer-right {
+            float: right;
+            width: 300px;
+            text-align: center;
+            font-size: 13.5pt;
+          }
+          .footer-date {
+            margin-bottom: 10px;
+          }
+          .footer-sign-title {
+            font-weight: bold;
+            font-size: 14pt;
+          }
+
+          @media print {
+            .no-print-bar {
+              display: none !important;
+            }
+            body { padding: 0; }
+            .invoice-box { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print-bar" style="background: #3b82f6; color: #fff; padding: 12px; text-align: center; font-family: sans-serif; font-size: 14px; position: sticky; top: 0; z-index: 9999; display: flex; justify-content: center; gap: 12px; align-items: center;">
+          <span><strong>Mẫu Hóa Đơn TPBD Thúy Hà (Chuẩn 100% Excel)</strong></span>
+          <button onclick="window.print()" style="background: #fff; color: #1d4ed8; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+            🖨️ In / Tải File PDF
+          </button>
+          <button onclick="window.close()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+            Đóng
+          </button>
+        </div>
+
+        <div class="invoice-box">
+          <!-- Header Store Info -->
+          <div class="store-header">
+            <table>
+              <tr>
+                <td class="brand-col">
+                  <div class="brand-title-sm">TRANG PHỤC BIỂU DIỄN</div>
+                  <div class="brand-title-lg">THÚY HÀ</div>
+                </td>
+                <td class="info-col">
+                  <div>Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
+                  <div>SĐT: 0394378999 - 0962384661</div>
+                  <div>FB: Ha Minh - Mai Diệu Thúy</div>
+                  <div>STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Customer Details -->
+          <div class="cust-info-section">
+            <div>Tên khách hàng: <span class="dotted-line" style="width: 75%;">${order.customer_name}</span></div>
+            <div>Địa chỉ: <span class="dotted-line" style="width: 84%;">${order.customer_organization || ''}</span></div>
+            <div>Sđt: <span class="dotted-line" style="width: 86%;">${order.customer_phone}</span></div>
+          </div>
+
+          <!-- Table of Items -->
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">TT</th>
+                <th>TÊN TRANG PHỤC</th>
+                <th style="width: 70px;">SL</th>
+                <th style="width: 130px;">ĐƠN GIÁ</th>
+                <th style="width: 150px;">THÀNH TIỀN</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHTML}
+              <tr class="total-row">
+                <td colspan="4" class="total-cell-label">TỔNG CỘNG</td>
+                <td class="total-cell-value">${formatVND(order.total_amount).replace(' đ', '')}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Amount in Words -->
+          <div class="words-section">
+            Thành tiền: <strong>${amountInWords}</strong>
+          </div>
+
+          <!-- Signature & Date -->
+          <div class="footer-section">
+            <div class="footer-right">
+              <div class="footer-date">Ngày ${day} tháng ${month} năm ${year}</div>
+              <div class="footer-sign-title">NGƯỜI BÁN HÀNG</div>
+            </div>
+            <div style="clear: both;"></div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      showToast('Trình duyệt đang chặn Popup! Vui lòng cho phép popup để xuất hóa đơn PDF.', 'error');
+      return;
+    }
+    printWin.document.write(invoiceHTML);
+    printWin.document.close();
   } catch (err) {
     showToast(err.message, 'error');
   }
