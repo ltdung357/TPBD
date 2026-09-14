@@ -48,23 +48,8 @@ function renderRentalsTable(orders) {
         </td>
         <td>${formatVND(order.deposit_amount)}</td>
         <td>${getRentalStatusBadge(order.status)}</td>
-        <td style="display: flex; gap: 6px; flex-wrap: wrap;" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); exportRentalInvoice(${order.id})" title="Xuất hóa đơn PDF">
-            <i class="fa-solid fa-file-pdf"></i> In Hóa Đơn
-          </button>
-          ${!order.is_paid ? `
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateRentalPayment(${order.id}, true)" title="Xác nhận khách đã thanh toán tiền thuê">
-              <i class="fa-solid fa-hand-holding-dollar"></i> Đã Trả Tiền
-            </button>
-          ` : ''}
-          ${order.status === 'RENTED' || order.status === 'OVERDUE' ? `
-            <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openReturnRentalModal(${order.id})">
-              <i class="fa-solid fa-check"></i> Trả Đồ
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})" title="Cập nhật ngày trả đồ">
-              <i class="fa-solid fa-calendar-pen"></i> Ngày Trả
-            </button>
-          ` : ''}
+        <td style="text-align: center; color: var(--text-muted); font-size: 12px;">
+          <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>Bấm để xem
         </td>
       </tr>
     `).join('');
@@ -120,28 +105,15 @@ function renderRentalsTable(orders) {
           </div>
         </div>
 
-        <!-- Footer: Total amount & Action buttons -->
+        <!-- Footer: Total amount only — actions inside detail modal -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px dashed var(--border); margin-top: 2px;">
           <div>
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Tổng tiền thuê</span>
             <strong style="font-size: 16px; color: var(--success); font-weight: 900;">${formatVND(order.total_amount)}</strong>
           </div>
-
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;" onclick="event.stopPropagation()">
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); exportRentalInvoice(${order.id})" style="padding: 6px 10px; font-size: 12px;" title="Xuất hóa đơn PDF">
-              <i class="fa-solid fa-file-pdf"></i> In Hóa Đơn
-            </button>
-            ${!order.is_paid ? `
-              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateRentalPayment(${order.id}, true)" style="padding: 6px 10px; font-size: 12px;" title="Xác nhận khách đã thanh toán">
-                <i class="fa-solid fa-hand-holding-dollar"></i> Đã Trả Tiền
-              </button>
-            ` : ''}
-            ${order.status === 'RENTED' || order.status === 'OVERDUE' ? `
-              <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openReturnRentalModal(${order.id})" style="padding: 6px 10px; font-size: 12px;">
-                <i class="fa-solid fa-check"></i> Trả Đồ
-              </button>
-            ` : ''}
-          </div>
+          <span style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+            <i class="fa-solid fa-hand-pointer" style="font-size: 13px;"></i> Bấm để xem
+          </span>
         </div>
       </div>
     `;
