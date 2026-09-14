@@ -1057,6 +1057,10 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
     const totalAmountNum = parseFloat(order.total_amount || 0);
     const amountInWords = docSoThanhChu(totalAmountNum);
 
+    const qrCodeUrl = totalAmountNum > 0 
+      ? `https://img.vietqr.io/image/BIDV-5130268161-compact2.png?amount=${totalAmountNum}&addInfo=${encodeURIComponent(order.order_code)}&accountName=MAI%20DIEU%20THUY` 
+      : 'qr_bank.png';
+
     // Direct Image Download Mode
     if (mode === 'IMAGE' && typeof html2canvas !== 'undefined') {
       showToast('Đang tạo file ảnh hóa đơn...', 'info');
@@ -1068,15 +1072,22 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
           <div style="width: 100%; margin-bottom: 20px;">
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
-                <td style="width: 42%; text-align: center; vertical-align: top;">
+                <td style="width: 34%; text-align: center; vertical-align: top;">
                   <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 14pt; font-weight: bold;">TRANG PHỤC BIỂU DIỄN</div>
                   <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 28pt; font-weight: bold; margin-top: 4px;">THÚY HÀ</div>
                 </td>
-                <td style="width: 58%; font-size: 12pt; font-weight: bold; line-height: 1.6; vertical-align: top; padding-left: 15px;">
+                <td style="width: 46%; font-size: 11.5pt; font-weight: bold; line-height: 1.5; vertical-align: top; padding-left: 10px;">
                   <div>Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
                   <div>SĐT: 0394378999 - 0962384661</div>
                   <div>FB: Ha Minh - Mai Diệu Thúy</div>
                   <div>STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
+                </td>
+                <td style="width: 20%; text-align: right; vertical-align: top; padding-left: 10px;">
+                  <img src="${qrCodeUrl}" 
+                       onerror="this.onerror=null; this.src='qr_bank.png';" 
+                       style="width: 115px; height: 115px; border-radius: 8px; border: 1px solid #ccc; object-fit: contain;" 
+                       alt="Mã QR Chuyển Tiền">
+                  <div style="font-size: 8.5pt; font-weight: bold; text-align: center; color: #333; margin-top: 2px;">Quét QR Chuyển Tiền</div>
                 </td>
               </tr>
             </table>
@@ -1310,17 +1321,24 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
         <div class="invoice-box">
           <!-- Header Store Info -->
           <div class="store-header">
-            <table>
+            <table style="width: 100%; border-collapse: collapse;">
               <tr>
-                <td class="brand-col">
+                <td class="brand-col" style="width: 34%; text-align: center; vertical-align: top;">
                   <div class="brand-title-sm">TRANG PHỤC BIỂU DIỄN</div>
                   <div class="brand-title-lg">THÚY HÀ</div>
                 </td>
-                <td class="info-col">
+                <td class="info-col" style="width: 46%; font-size: 11.5pt; font-weight: bold; line-height: 1.5; vertical-align: top; padding-left: 10px;">
                   <div>Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
                   <div>SĐT: 0394378999 - 0962384661</div>
                   <div>FB: Ha Minh - Mai Diệu Thúy</div>
                   <div>STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
+                </td>
+                <td style="width: 20%; text-align: right; vertical-align: top; padding-left: 10px;">
+                  <img src="${qrCodeUrl}" 
+                       onerror="this.onerror=null; this.src='qr_bank.png';" 
+                       style="width: 115px; height: 115px; border-radius: 8px; border: 1px solid #ccc; object-fit: contain;" 
+                       alt="Mã QR Chuyển Tiền">
+                  <div style="font-size: 8.5pt; font-weight: bold; text-align: center; color: #333; margin-top: 2px;">Quét QR Chuyển Tiền</div>
                 </td>
               </tr>
             </table>
