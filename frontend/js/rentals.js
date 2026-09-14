@@ -58,8 +58,12 @@ function renderRentalsTable(orders) {
 
   // Render Desktop Table Rows
   if (tbody) {
-    tbody.innerHTML = orders.map(order => `
-      <tr onclick="openOrderDetailModal(${order.id})" style="cursor: pointer;" title="Bấm vào để xem chi tiết đơn thuê">
+    tbody.innerHTML = orders.map(order => {
+      const isDraft = order.status === 'DRAFT';
+      const clickHandler = isDraft ? `editDraftOrder(${order.id})` : `openOrderDetailModal(${order.id})`;
+
+      return `
+      <tr onclick="${clickHandler}" style="cursor: pointer;" title="${isDraft ? 'Bấm vào để sửa đơn nháp' : 'Bấm vào để xem chi tiết đơn thuê'}">
         <td><strong style="color: var(--primary);">${order.order_code}</strong></td>
         <td>${order.customer_name}</td>
         <td>${order.customer_phone}</td>
@@ -67,21 +71,26 @@ function renderRentalsTable(orders) {
         <td>
           ${order.rental_end 
             ? formatDate(order.rental_end) 
-            : `<span class="badge badge-warning" style="font-size: 11px;" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})" title="Bấm để cập nhật ngày trả đồ"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`}
+            : `<span class="badge badge-warning" style="font-size: 11px;" onclick="event.stopPropagation(); ${isDraft ? `editDraftOrder(${order.id})` : `openUpdateRentalModal(${order.id})`}" title="Bấm để cập nhật ngày trả đồ"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`}
         </td>
         <td><strong style="color: var(--success);">${formatVND(order.total_amount)}</strong></td>
         <td>
-          ${order.is_paid 
-            ? `<span class="badge badge-success" style="white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> Đã Thanh Toán</span>` 
-            : `<span class="badge badge-warning" style="white-space: nowrap;"><i class="fa-solid fa-clock"></i> Chưa Thanh Toán</span>`}
+          ${isDraft 
+            ? `<span style="color: var(--text-muted); font-size: 12px;">--</span>` 
+            : (order.is_paid 
+                ? `<span class="badge badge-success" style="white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> Đã Thanh Toán</span>` 
+                : `<span class="badge badge-warning" style="white-space: nowrap;"><i class="fa-solid fa-clock"></i> Chưa Thanh Toán</span>`)}
         </td>
         <td>${formatVND(order.deposit_amount)}</td>
         <td>${getRentalStatusBadge(order.status)}</td>
         <td style="text-align: center; color: var(--text-muted); font-size: 12px;">
-          <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>Bấm để xem
+          ${isDraft 
+            ? `<span style="color: #d97706; font-weight: 700;"><i class="fa-solid fa-pen-to-square"></i> Sửa nháp</span>` 
+            : `<i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>Bấm để xem`}
         </td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // Render Mobile Cards View
@@ -90,9 +99,10 @@ function renderRentalsTable(orders) {
       const isDraft = order.status === 'DRAFT';
       const isReturned = order.status === 'RETURNED';
       const borderClass = isDraft ? 'rental-card-draft' : (isReturned ? 'rental-card-returned' : 'rental-card-unreturned');
+      const clickHandler = isDraft ? `editDraftOrder(${order.id})` : `openOrderDetailModal(${order.id})`;
 
       return `
-        <div class="rental-card-mobile ${borderClass}" onclick="openOrderDetailModal(${order.id})" style="cursor: pointer;">
+        <div class="rental-card-mobile ${borderClass}" onclick="${clickHandler}" style="cursor: pointer;">
         <!-- Top: Order code & Status Badges -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
           <div>
@@ -101,9 +111,9 @@ function renderRentalsTable(orders) {
           </div>
           <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
             ${getRentalStatusBadge(order.status)}
-            ${order.is_paid 
+            ${!isDraft ? (order.is_paid 
               ? `<span class="badge badge-success" style="font-size: 10px;"><i class="fa-solid fa-circle-check"></i> Đã TT</span>` 
-              : `<span class="badge badge-warning" style="font-size: 10px;"><i class="fa-solid fa-clock"></i> Chưa TT</span>`}
+              : `<span class="badge badge-warning" style="font-size: 10px;"><i class="fa-solid fa-clock"></i> Chưa TT</span>`) : ''}
           </div>
         </div>
 
@@ -131,11 +141,11 @@ function renderRentalsTable(orders) {
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Hạn trả đồ</span>
             ${order.rental_end 
               ? `<b style="font-size: 12px; color: var(--text-heading);">${formatDate(order.rental_end)}</b>` 
-              : `<span class="badge badge-warning" style="font-size: 10px; cursor: pointer;" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`}
+              : `<span class="badge badge-warning" style="font-size: 10px; cursor: pointer;" onclick="event.stopPropagation(); ${isDraft ? `editDraftOrder(${order.id})` : `openUpdateRentalModal(${order.id})`}"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`}
           </div>
         </div>
 
-        <!-- Footer: Total amount only — actions inside detail modal -->
+        <!-- Footer: Total amount & click action hint -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px dashed var(--border); margin-top: 2px;">
           <div>
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Tổng tiền thuê</span>
@@ -143,7 +153,7 @@ function renderRentalsTable(orders) {
           </div>
           <span style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
             ${isDraft 
-              ? `<button type="button" class="btn btn-warning btn-sm" style="padding: 3px 8px; font-size: 11px; font-weight: 700;" onclick="event.stopPropagation(); editDraftOrder(${order.id})"><i class="fa-solid fa-pen-to-square"></i> Sửa nháp</button>` 
+              ? `<span style="font-size: 12px; font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-pen-to-square"></i> Bấm để sửa nháp</span>` 
               : `<i class="fa-solid fa-hand-pointer" style="font-size: 13px;"></i> Bấm để xem`}
           </span>
         </div>
