@@ -955,11 +955,21 @@ async function exportRentalInvoice(id) {
           }
 
           @media print {
-            .no-print-bar {
+            #print-invoice-frame-overlay,
+            #print-invoice-frame-overlay * {
+              visibility: visible !important;
+            }
+            body > *:not(#print-invoice-frame-overlay) {
               display: none !important;
             }
-            body { padding: 0; }
-            .invoice-box { padding: 0; }
+            #print-invoice-frame-overlay {
+              position: fixed !important;
+              top: 0 !important;
+              left: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              display: block !important;
+            }
           }
         </style>
       </head>
@@ -1046,13 +1056,37 @@ async function exportRentalInvoice(id) {
       </html>
     `;
 
-    const printWin = window.open('', '_blank');
-    if (!printWin) {
-      showToast('Trình duyệt đang chặn Popup! Vui lòng cho phép popup để xuất hóa đơn PDF.', 'error');
-      return;
-    }
-    printWin.document.write(invoiceHTML);
-    printWin.document.close();
+    // === Mobile-safe: dùng Blob URL + iframe ẩn, không cần popup ===
+    const blob = new Blob([invoiceHTML], { type: 'text/html; charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Xóa iframe cũ nếu còn
+    const oldFrame = document.getElementById('print-invoice-frame-overlay');
+    if (oldFrame) oldFrame.remove();
+
+    // Tạo iframe ẩn nhúng vào trang
+    const iframe = document.createElement('iframe');
+    iframe.id = 'print-invoice-frame-overlay';
+    iframe.src = blobUrl;
+    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:999999;background:#fff;';
+    document.body.appendChild(iframe);
+
+    // Nút đóng iframe (hiển thị trong iframe header, nhưng thêm nút đóng bên ngoài phòng hờ)
+    iframe.onload = function () {
+      URL.revokeObjectURL(blobUrl); // giải phóng bộ nhớ
+      // Gắn nút đóng vào iframe document nếu có thể truy cập
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const closeButtons = iframeDoc.querySelectorAll('button');
+        closeButtons.forEach(btn => {
+          if (btn.textContent.includes('Đóng')) {
+            btn.addEventListener('click', () => {
+              iframe.remove();
+            });
+          }
+        });
+      } catch (e) { /* cross-origin safe */ }
+    };
   } catch (err) {
     showToast(err.message, 'error');
   }
