@@ -903,9 +903,6 @@ async function openOrderDetailModal(id) {
     const isMobile = window.innerWidth <= 768;
     const footer = document.getElementById('detail-actions-footer');
     let actionsHTML = `
-      <button class="btn btn-warning btn-sm" onclick="closeModal('modal-order-detail'); editRentalOrder(${order.id})">
-        <i class="fa-solid fa-pen-to-square"></i> Sửa Đơn Thuê
-      </button>
       <button class="btn btn-primary btn-sm" style="background: #2563eb; border-color: #2563eb;" onclick="exportRentalInvoice(${order.id}, 'IMAGE')">
         <i class="fa-solid fa-file-image"></i> Xuất File Ảnh (PNG)
       </button>
