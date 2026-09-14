@@ -1556,3 +1556,184 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
     showToast(err.message, 'error');
   }
 }
+
+// ====== SMART CUSTOMER AUTOCOMPLETE & DUPLICATE ORDER WARNINGS FOR RENTALS ======
+
+let cachedCustomerList = [];
+
+async function getUniqueCustomerRecords() {
+  const map = new Map();
+
+  // 1. From rentalsList
+  if (rentalsList && Array.isArray(rentalsList)) {
+    rentalsList.forEach(o => {
+      const phone = (o.customer_phone || '').trim();
+      const name = (o.customer_name || '').trim();
+      const address = (o.customer_address || '').trim();
+
+      if (phone || name) {
+        const key = phone || name.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { name, phone, address });
+        } else if (address && !map.get(key).address) {
+          map.get(key).address = address;
+        }
+      }
+    });
+  }
+
+  // 2. Fetch /api/customers
+  try {
+    const token = localStorage.getItem('tpbd_token');
+    const res = await fetch('/api/customers', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      (data || []).forEach(c => {
+        const phone = (c.phone || '').trim();
+        const name = (c.name || '').trim();
+        const address = (c.address || '').trim();
+        if (phone || name) {
+          const key = phone || name.toLowerCase();
+          map.set(key, { name, phone, address });
+        }
+      });
+    }
+  } catch(e) {}
+
+  cachedCustomerList = Array.from(map.values());
+  return cachedCustomerList;
+}
+
+async function handleRentalCustomerInput() {
+  const nameVal = (document.getElementById('rental-cust-name')?.value || '').trim();
+  const phoneVal = (document.getElementById('rental-cust-phone')?.value || '').trim();
+  const currentEditingId = document.getElementById('rental-editing-draft-id')?.value;
+
+  const nameBox = document.getElementById('rental-cust-name-suggestions');
+  const phoneBox = document.getElementById('rental-cust-phone-suggestions');
+  const warningBox = document.getElementById('rental-customer-active-warning');
+
+  // Check active/unreturned or draft orders for this phone or customer name
+  if (warningBox) {
+    if ((phoneVal || nameVal) && rentalsList && rentalsList.length > 0) {
+      const phoneLower = phoneVal.toLowerCase();
+      const nameLower = nameVal.toLowerCase();
+
+      const activeOrder = rentalsList.find(o => {
+        if (currentEditingId && String(o.id) === String(currentEditingId)) return false;
+        const matchesPhone = phoneVal && o.customer_phone && o.customer_phone.toLowerCase().includes(phoneLower);
+        const matchesName = nameVal && o.customer_name && o.customer_name.toLowerCase() === nameLower;
+        return (matchesPhone || matchesName) && (o.status === 'RENTED' || o.status === 'DRAFT');
+      });
+
+      if (activeOrder) {
+        warningBox.style.display = 'block';
+        const isDraft = activeOrder.status === 'DRAFT';
+        warningBox.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span>
+              💡 Khách hàng này hiện có 1 đơn <strong>${isDraft ? 'Nháp' : 'Đang thuê chưa trả'}</strong> 
+              (Mã: <strong style="color: var(--primary);">${activeOrder.order_code}</strong> - ${formatVND(activeOrder.total_amount)})!
+            </span>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="openOrderDetailModal(${activeOrder.id})" style="padding: 2px 8px; font-size: 11px; font-weight: 700; white-space: nowrap;">
+              <i class="fa-solid fa-eye"></i> Xem Đơn
+            </button>
+          </div>
+        `;
+      } else {
+        warningBox.style.display = 'none';
+      }
+    } else {
+      warningBox.style.display = 'none';
+    }
+  }
+
+  // Render Autocomplete Dropdowns
+  const customers = await getUniqueCustomerRecords();
+  if (!customers || customers.length === 0) return;
+
+  // 1. Name Suggestions
+  if (nameBox) {
+    if (nameVal && nameVal.length >= 1) {
+      const qLower = nameVal.toLowerCase();
+      const matches = customers.filter(c => c.name && c.name.toLowerCase().includes(qLower));
+      if (matches.length > 0) {
+        nameBox.style.display = 'block';
+        nameBox.innerHTML = matches.slice(0, 5).map(c => `
+          <div onclick="selectRentalCustomerSuggestion('${encodeURIComponent(JSON.stringify(c))}')" 
+               style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border);"
+               onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+            <strong style="font-size: 13px; color: var(--text-heading); display: block;">${c.name}</strong>
+            <small style="font-size: 11px; color: var(--text-muted);">SĐT: <b>${c.phone || '---'}</b> ${c.address ? `| Địa chỉ: ${c.address}` : ''}</small>
+          </div>
+        `).join('');
+      } else {
+        nameBox.style.display = 'none';
+      }
+    } else {
+      nameBox.style.display = 'none';
+    }
+  }
+
+  // 2. Phone Suggestions
+  if (phoneBox) {
+    if (phoneVal && phoneVal.length >= 2) {
+      const qLower = phoneVal.toLowerCase();
+      const matches = customers.filter(c => c.phone && c.phone.toLowerCase().includes(qLower));
+      if (matches.length > 0) {
+        phoneBox.style.display = 'block';
+        phoneBox.innerHTML = matches.slice(0, 5).map(c => `
+          <div onclick="selectRentalCustomerSuggestion('${encodeURIComponent(JSON.stringify(c))}')" 
+               style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border);"
+               onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+            <strong style="font-size: 13px; color: var(--primary); display: block;">${c.phone}</strong>
+            <small style="font-size: 11px; color: var(--text-heading); font-weight: 600;">Khách: ${c.name} ${c.address ? `| ${c.address}` : ''}</small>
+          </div>
+        `).join('');
+      } else {
+        phoneBox.style.display = 'none';
+      }
+    } else {
+      phoneBox.style.display = 'none';
+    }
+  }
+}
+
+function selectRentalCustomerSuggestion(encodedStr) {
+  try {
+    const c = JSON.parse(decodeURIComponent(encodedStr));
+    if (c.name && document.getElementById('rental-cust-name')) {
+      document.getElementById('rental-cust-name').value = c.name;
+    }
+    if (c.phone && document.getElementById('rental-cust-phone')) {
+      document.getElementById('rental-cust-phone').value = c.phone;
+    }
+    if (c.address && document.getElementById('rental-cust-address')) {
+      document.getElementById('rental-cust-address').value = c.address;
+    }
+
+    const nameBox = document.getElementById('rental-cust-name-suggestions');
+    const phoneBox = document.getElementById('rental-cust-phone-suggestions');
+    if (nameBox) nameBox.style.display = 'none';
+    if (phoneBox) phoneBox.style.display = 'none';
+
+    handleRentalCustomerInput();
+    showToast(`Đã tự động điền thông tin khách hàng "${c.name}"`, 'success');
+  } catch(e) {}
+}
+
+document.addEventListener('click', function(e) {
+  const nameInput = document.getElementById('rental-cust-name');
+  const phoneInput = document.getElementById('rental-cust-phone');
+  const nameBox = document.getElementById('rental-cust-name-suggestions');
+  const phoneBox = document.getElementById('rental-cust-phone-suggestions');
+
+  if (nameBox && nameInput && !nameInput.contains(e.target) && !nameBox.contains(e.target)) {
+    nameBox.style.display = 'none';
+  }
+  if (phoneBox && phoneInput && !phoneInput.contains(e.target) && !phoneBox.contains(e.target)) {
+    phoneBox.style.display = 'none';
+  }
+});
