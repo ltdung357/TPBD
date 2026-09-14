@@ -233,7 +233,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 // Cập nhật trạng thái đơn thuê (Ví dụ: Khách trả đồ -> Cộng lại kho)
 router.put('/:id/status', verifyToken, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; // 'RETURNED', 'OVERDUE', 'CANCELLED'
+  const { status, rental_end } = req.body; // 'RETURNED', 'OVERDUE', 'CANCELLED'
 
   if (!status) return res.status(400).json({ message: 'Vui lòng chọn trạng thái mới!' });
 
@@ -249,17 +249,38 @@ router.put('/:id/status', verifyToken, async (req, res) => {
     const currentOrder = currentRes.rows[0];
 
     if (status === 'RETURNED') {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const returnDate = rental_end || new Date().toISOString().split('T')[0];
+      let newTotalAmount = parseFloat(currentOrder.total_amount);
+
+      if (returnDate && currentOrder.rental_start) {
+        const startDate = new Date(currentOrder.rental_start);
+        const endDate = new Date(returnDate);
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const daysCount = Math.max(1, Math.ceil(timeDiff / (1000 * 3600 * 24)));
+
+        const itemsRes = await client.query(`SELECT * FROM rental_items WHERE rental_id = $1`, [id]);
+        let calcTotal = 0;
+        for (const item of itemsRes.rows) {
+          const itemTotal = parseFloat(item.price_per_day) * parseInt(item.qty, 10);
+          calcTotal += itemTotal;
+          await client.query(
+            `UPDATE rental_items SET days_count = $1, item_total = $2 WHERE id = $3`,
+            [daysCount, itemTotal, item.id]
+          );
+        }
+        newTotalAmount = calcTotal;
+      }
+
       await client.query(
-        `UPDATE rental_orders SET status = $1, rental_end = $2 WHERE id = $3`,
-        [status, todayStr, id]
+        `UPDATE rental_orders SET status = $1, rental_end = $2, total_amount = $3 WHERE id = $4`,
+        [status, returnDate, newTotalAmount, id]
       );
     } else {
       await client.query(`UPDATE rental_orders SET status = $1 WHERE id = $2`, [status, id]);
     }
 
     await client.query('COMMIT');
-    res.json({ message: `Cập nhật đơn hàng thành trạng thái ${status} thành công!` });
+    res.json({ message: `Xác nhận trả đồ thành công!` });
   } catch (err) {
     await client.query('ROLLBACK');
     res.status(400).json({ message: err.message });

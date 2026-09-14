@@ -610,6 +610,38 @@
           <i class="fa-solid fa-floppy-disk"></i> Lưu Cập Nhật
         </button>
       </form>
+  </div>
+
+  <!-- Modal Xác Nhận Trả Đồ (Return Rental Modal) -->
+  <div id="modal-return-rental" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 style="font-size: 16px; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Xác Nhận Trả Đồ
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-return-rental')">&times;</button>
+      </div>
+      <form id="form-return-rental" onsubmit="submitReturnRental(event)">
+        <input type="hidden" id="return-rental-id">
+        <div style="background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 11px; color: var(--text-muted);">Mã đơn thuê: <strong id="return-rental-code" style="color: var(--primary); font-size: 13px;">---</strong></div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-heading); margin-top: 4px;" id="return-rental-cust">---</div>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="margin-bottom: 0; font-weight: 700;">Ngày Khách Trả Đồ *</label>
+            <button type="button" class="btn btn-sm btn-primary" onclick="setReturnDateToToday()" style="padding: 3px 10px; font-size: 11px; font-weight: 700; border-radius: 6px;">
+              <i class="fa-solid fa-calendar-day"></i> Chọn Hôm Nay
+            </button>
+          </div>
+          <input type="date" id="return-rental-date" class="form-control" required style="font-weight: 700; font-size: 14px;">
+        </div>
+
+        <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; margin-top: 14px; font-weight: 800; font-size: 14px; padding: 12px;">
+          <i class="fa-solid fa-check"></i> Xác Nhận Trả Đồ
+        </button>
+      </form>
     </div>
   </div>
 
@@ -955,10 +987,10 @@
   <div id="toast-container"></div>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=17.0"></script>
-  <script src="js/costumes.js?v=17.0"></script>
-  <script src="js/rentals.js?v=17.0"></script>
-  <script src="js/customers.js?v=17.0"></script>
-  <script src="js/reports.js?v=17.0"></script>
+  <script src="js/app.js?v=18.0"></script>
+  <script src="js/costumes.js?v=18.0"></script>
+  <script src="js/rentals.js?v=18.0"></script>
+  <script src="js/customers.js?v=18.0"></script>
+  <script src="js/reports.js?v=18.0"></script>
 </body>
 </html>

@@ -55,7 +55,7 @@ function renderRentalsTable(orders) {
             </button>
           ` : ''}
           ${order.status === 'RENTED' || order.status === 'OVERDUE' ? `
-            <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); updateRentalStatus(${order.id}, 'RETURNED')">
+            <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openReturnRentalModal(${order.id})">
               <i class="fa-solid fa-check"></i> Trả Đồ
             </button>
             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})" title="Cập nhật ngày trả đồ">
@@ -131,7 +131,7 @@ function renderRentalsTable(orders) {
               </button>
             ` : ''}
             ${order.status === 'RENTED' || order.status === 'OVERDUE' ? `
-              <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); updateRentalStatus(${order.id}, 'RETURNED')" style="padding: 6px 10px; font-size: 12px;">
+              <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openReturnRentalModal(${order.id})" style="padding: 6px 10px; font-size: 12px;">
                 <i class="fa-solid fa-check"></i> Trả Đồ
               </button>
             ` : ''}
@@ -633,7 +633,7 @@ async function openOrderDetailModal(id) {
 
     if (['RENTED', 'OVERDUE'].includes(order.status)) {
       actionsHTML += `
-        <button class="btn btn-success btn-sm" onclick="closeModal('modal-order-detail'); updateRentalStatus(${order.id}, 'RETURNED')">
+        <button class="btn btn-success btn-sm" onclick="closeModal('modal-order-detail'); openReturnRentalModal(${order.id})">
           <i class="fa-solid fa-check"></i> Xác Nhận Trả Đồ
         </button>
         <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-order-detail'); openUpdateRentalModal(${order.id})">
@@ -645,6 +645,68 @@ async function openOrderDetailModal(id) {
     footer.innerHTML = actionsHTML;
 
     openModal('modal-order-detail');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// Open modal to return rental with date picker (defaults to today)
+function openReturnRentalModal(id) {
+  const order = rentalsList.find(o => o.id === id);
+  if (!order) {
+    fetch(`/api/rentals/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.order) setupAndOpenReturnModal(data.order);
+      })
+      .catch(err => showToast('Lỗi khi tải thông tin đơn thuê: ' + err.message, 'error'));
+    return;
+  }
+  setupAndOpenReturnModal(order);
+}
+
+function setupAndOpenReturnModal(order) {
+  document.getElementById('return-rental-id').value = order.id;
+  document.getElementById('return-rental-code').innerText = order.order_code;
+  document.getElementById('return-rental-cust').innerText = `${order.customer_name} (${order.customer_phone})`;
+  
+  // Set default return date to TODAY
+  const todayStr = new Date().toISOString().split('T')[0];
+  document.getElementById('return-rental-date').value = todayStr;
+
+  openModal('modal-return-rental');
+}
+
+function setReturnDateToToday() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dateInput = document.getElementById('return-rental-date');
+  if (dateInput) dateInput.value = todayStr;
+}
+
+// Submit Return Rental with selected date
+async function submitReturnRental(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('tpbd_token');
+  const id = document.getElementById('return-rental-id').value;
+  const rental_end = document.getElementById('return-rental-date').value;
+
+  try {
+    const res = await fetch(`/api/rentals/${id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: 'RETURNED', rental_end })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Cập nhật trả đồ thất bại!');
+
+    showToast(data.message || 'Xác nhận trả đồ thành công!');
+    closeModal('modal-return-rental');
+    loadRentals();
+    if (typeof loadDashboardStats === 'function') loadDashboardStats();
   } catch (err) {
     showToast(err.message, 'error');
   }
