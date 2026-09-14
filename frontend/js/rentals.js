@@ -68,13 +68,6 @@ function renderRentalsTable(orders) {
         <td>${order.customer_name}</td>
         <td>${order.customer_phone}</td>
         <td>${formatDate(order.rental_start)}</td>
-        <td>
-          ${order.rental_end 
-            ? formatDate(order.rental_end) 
-            : (isDraft 
-                ? `<span style="color: var(--text-muted); font-size: 12px;">--</span>` 
-                : `<span class="badge badge-warning" style="font-size: 11px;"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
-        </td>
         <td><strong style="color: var(--success);">${formatVND(order.total_amount)}</strong></td>
         <td>
           ${isDraft 
@@ -155,14 +148,12 @@ function renderRentalsTable(orders) {
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Ngày nhận đồ</span>
             <b style="font-size: 12px; color: var(--text-heading);">${formatDate(order.rental_start)}</b>
           </div>
-          <div style="text-align: right;">
-            <span style="font-size: 11px; color: var(--text-muted); display: block;">Hạn trả đồ</span>
-            ${order.rental_end 
-              ? `<b style="font-size: 12px; color: var(--text-heading);">${formatDate(order.rental_end)}</b>` 
-              : (isDraft 
-                  ? `<span style="font-size: 12px; color: var(--text-muted);">--</span>` 
-                  : `<span class="badge badge-warning" style="font-size: 10px;"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
-          </div>
+          ${order.rental_end ? `
+            <div style="text-align: right;">
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">Ngày trả đồ</span>
+              <b style="font-size: 12px; color: var(--success);">${formatDate(order.rental_end)}</b>
+            </div>
+          ` : ''}
         </div>
 
         <!-- Footer: Total amount & click action hint -->
@@ -798,7 +789,13 @@ async function openOrderDetailModal(id) {
     }
 
     document.getElementById('detail-rental-start').innerText = formatDate(order.rental_start);
-    document.getElementById('detail-rental-end').innerText = order.rental_end ? formatDate(order.rental_end) : 'Chưa hẹn ngày';
+    const endContainer = document.getElementById('detail-rental-end-container');
+    if (order.rental_end) {
+      if (endContainer) endContainer.style.display = 'block';
+      document.getElementById('detail-rental-end').innerText = formatDate(order.rental_end);
+    } else {
+      if (endContainer) endContainer.style.display = 'none';
+    }
 
     document.getElementById('detail-total-amount').innerText = formatVND(order.total_amount);
     document.getElementById('detail-deposit-amount').innerText = 'Tiền cọc: ' + formatVND(order.deposit_amount);

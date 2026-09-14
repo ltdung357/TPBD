@@ -36,7 +36,7 @@ function renderUrgentRentals(items) {
         <td><strong style="color: var(--primary);">${item.order_code}</strong></td>
         <td>${item.customer_name}</td>
         <td>${item.customer_phone}</td>
-        <td>${formatDate(item.rental_end)}</td>
+        <td>${formatDate(item.rental_start || item.created_at)}</td>
         <td><strong style="color: var(--success);">${formatVND(item.total_amount)}</strong></td>
         <td>${getRentalStatusBadge(item.status)}</td>
       </tr>
@@ -60,9 +60,15 @@ function renderUrgentRentals(items) {
             <strong>${item.customer_name} (${item.customer_phone})</strong>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 13px;">
-            <span style="color: var(--text-muted);">Hạn trả đồ:</span>
-            <b>${formatDate(item.rental_end)}</b>
+            <span style="color: var(--text-muted);">Ngày thuê:</span>
+            <b>${formatDate(item.rental_start || item.created_at)}</b>
           </div>
+          ${item.rental_end ? `
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--text-muted);">Ngày trả đồ:</span>
+              <b style="color: var(--success);">${formatDate(item.rental_end)}</b>
+            </div>
+          ` : ''}
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 8px; border-top: 1px dashed var(--border);">
             <strong style="font-size: 15px; color: var(--success);">${formatVND(item.total_amount)}</strong>
           </div>
