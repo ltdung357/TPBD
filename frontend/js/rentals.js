@@ -73,7 +73,7 @@ function renderRentalsTable(orders) {
             ? formatDate(order.rental_end) 
             : (isDraft 
                 ? `<span style="color: var(--text-muted); font-size: 12px;">--</span>` 
-                : `<span class="badge badge-warning" style="font-size: 11px;" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})" title="Bấm để cập nhật ngày trả đồ"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
+                : `<span class="badge badge-warning" style="font-size: 11px;"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
         </td>
         <td><strong style="color: var(--success);">${formatVND(order.total_amount)}</strong></td>
         <td>
@@ -161,7 +161,7 @@ function renderRentalsTable(orders) {
               ? `<b style="font-size: 12px; color: var(--text-heading);">${formatDate(order.rental_end)}</b>` 
               : (isDraft 
                   ? `<span style="font-size: 12px; color: var(--text-muted);">--</span>` 
-                  : `<span class="badge badge-warning" style="font-size: 10px; cursor: pointer;" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
+                  : `<span class="badge badge-warning" style="font-size: 10px;"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
           </div>
         </div>
 
@@ -845,9 +845,6 @@ async function openOrderDetailModal(id) {
       actionsHTML += `
         <button class="btn btn-success btn-sm" onclick="closeModal('modal-order-detail'); openReturnRentalModal(${order.id})">
           <i class="fa-solid fa-check"></i> Xác Nhận Trả Đồ
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-order-detail'); openUpdateRentalModal(${order.id})">
-          <i class="fa-solid fa-calendar-pen"></i> Sửa Ngày Trả
         </button>
       `;
     }
