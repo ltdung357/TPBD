@@ -71,7 +71,9 @@ function renderRentalsTable(orders) {
         <td>
           ${order.rental_end 
             ? formatDate(order.rental_end) 
-            : `<span class="badge badge-warning" style="font-size: 11px;" onclick="event.stopPropagation(); ${isDraft ? `editDraftOrder(${order.id})` : `openUpdateRentalModal(${order.id})`}" title="Bấm để cập nhật ngày trả đồ"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`}
+            : (isDraft 
+                ? `<span style="color: var(--text-muted); font-size: 12px;">--</span>` 
+                : `<span class="badge badge-warning" style="font-size: 11px;" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})" title="Bấm để cập nhật ngày trả đồ"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
         </td>
         <td><strong style="color: var(--success);">${formatVND(order.total_amount)}</strong></td>
         <td>
@@ -141,7 +143,9 @@ function renderRentalsTable(orders) {
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Hạn trả đồ</span>
             ${order.rental_end 
               ? `<b style="font-size: 12px; color: var(--text-heading);">${formatDate(order.rental_end)}</b>` 
-              : `<span class="badge badge-warning" style="font-size: 10px; cursor: pointer;" onclick="event.stopPropagation(); ${isDraft ? `editDraftOrder(${order.id})` : `openUpdateRentalModal(${order.id})`}"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`}
+              : (isDraft 
+                  ? `<span style="font-size: 12px; color: var(--text-muted);">--</span>` 
+                  : `<span class="badge badge-warning" style="font-size: 10px; cursor: pointer;" onclick="event.stopPropagation(); openUpdateRentalModal(${order.id})"><i class="fa-solid fa-clock"></i> Chưa hẹn ngày</span>`)}
           </div>
         </div>
 
