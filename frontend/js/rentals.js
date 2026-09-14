@@ -620,6 +620,11 @@ async function createRentalOrder(e) {
   const notes = document.getElementById('rental-notes').value.trim();
   const is_paid = document.getElementById('rental-is-paid')?.checked || false;
 
+  if (!customer_address) {
+    showToast('Vui lòng nhập địa chỉ khách hàng!', 'error');
+    return;
+  }
+
   if (!selectedRentalItems || selectedRentalItems.length === 0) {
     showToast('Vui lòng bấm "+ Thêm Món Đồ" để chọn trang phục bằng hình ảnh!', 'error');
     return;
