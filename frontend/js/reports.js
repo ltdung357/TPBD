@@ -64,9 +64,6 @@ function renderUrgentRentals(items) {
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 8px; border-top: 1px dashed var(--border);">
             <strong style="font-size: 15px; color: var(--success);">${formatVND(item.total_amount)}</strong>
-            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openOrderDetailModal(${item.id})">
-              <i class="fa-solid fa-eye"></i> Xem
-            </button>
           </div>
         </div>
       `;

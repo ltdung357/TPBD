@@ -49,9 +49,6 @@ function renderRentalsTable(orders) {
         <td>${formatVND(order.deposit_amount)}</td>
         <td>${getRentalStatusBadge(order.status)}</td>
         <td style="display: flex; gap: 6px; flex-wrap: wrap;" onclick="event.stopPropagation()">
-          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openOrderDetailModal(${order.id})" title="Xem chi tiết đơn thuê">
-            <i class="fa-solid fa-eye"></i> Xem
-          </button>
           ${!order.is_paid ? `
             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateRentalPayment(${order.id}, true)" title="Xác nhận khách đã thanh toán tiền thuê">
               <i class="fa-solid fa-hand-holding-dollar"></i> Đã Trả Tiền
@@ -128,9 +125,6 @@ function renderRentalsTable(orders) {
           </div>
 
           <div style="display: flex; gap: 6px; flex-wrap: wrap;" onclick="event.stopPropagation()">
-            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openOrderDetailModal(${order.id})" style="padding: 6px 10px; font-size: 12px;" title="Xem chi tiết">
-              <i class="fa-solid fa-eye"></i> Xem
-            </button>
             ${!order.is_paid ? `
               <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateRentalPayment(${order.id}, true)" style="padding: 6px 10px; font-size: 12px;" title="Xác nhận khách đã thanh toán">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Đã Trả Tiền
@@ -424,7 +418,6 @@ async function createRentalOrder(e) {
   const customer_name = document.getElementById('rental-cust-name').value.trim();
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
   const rental_start = document.getElementById('rental-start-date').value;
-  const rental_end = document.getElementById('rental-end-date').value;
   const notes = document.getElementById('rental-notes').value.trim();
   const is_paid = document.getElementById('rental-is-paid')?.checked || false;
 
@@ -444,7 +437,7 @@ async function createRentalOrder(e) {
         customer_name,
         customer_phone,
         rental_start,
-        rental_end: rental_end || null,
+        rental_end: null,
         notes,
         is_paid,
         items: selectedRentalItems

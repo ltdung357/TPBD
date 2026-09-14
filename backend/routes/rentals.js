@@ -248,7 +248,15 @@ router.put('/:id/status', verifyToken, async (req, res) => {
     }
     const currentOrder = currentRes.rows[0];
 
-    await client.query(`UPDATE rental_orders SET status = $1 WHERE id = $2`, [status, id]);
+    if (status === 'RETURNED') {
+      const todayStr = new Date().toISOString().split('T')[0];
+      await client.query(
+        `UPDATE rental_orders SET status = $1, rental_end = $2 WHERE id = $3`,
+        [status, todayStr, id]
+      );
+    } else {
+      await client.query(`UPDATE rental_orders SET status = $1 WHERE id = $2`, [status, id]);
+    }
 
     await client.query('COMMIT');
     res.json({ message: `Cập nhật đơn hàng thành trạng thái ${status} thành công!` });
