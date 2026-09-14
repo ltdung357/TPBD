@@ -84,9 +84,11 @@ function renderRentalsTable(orders) {
           </div>
         </td>
         <td style="text-align: center; color: var(--text-muted); font-size: 12px;">
-          ${isDraft 
-            ? `<span style="color: #d97706; font-weight: 700;"><i class="fa-solid fa-pen-to-square"></i> Sửa nháp</span>` 
-            : `<i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>Bấm để xem`}
+          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+            <button type="button" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); editRentalOrder(${order.id})" title="Sửa đơn này">
+              <i class="fa-solid fa-pen-to-square"></i> Sửa
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -101,7 +103,7 @@ function renderRentalsTable(orders) {
       const isPaid = !!order.is_paid;
       // Chỉ khi Đã Trả Đồ VÀ Đã Thanh Toán mới hiện màu xanh (rental-card-returned), chưa trả đồ HOẶC chưa thanh toán thì vẫn màu đỏ (rental-card-unreturned)
       const borderClass = isDraft ? 'rental-card-draft' : ((isReturned && isPaid) ? 'rental-card-returned' : 'rental-card-unreturned');
-      const clickHandler = isDraft ? `editDraftOrder(${order.id})` : `openOrderDetailModal(${order.id})`;
+      const clickHandler = `openOrderDetailModal(${order.id})`;
 
       return `
         <div class="rental-card-mobile ${borderClass}" onclick="${clickHandler}" style="cursor: pointer;">
@@ -112,6 +114,9 @@ function renderRentalsTable(orders) {
             <strong style="font-size: 15px; color: var(--primary); font-weight: 800;">${order.order_code}</strong>
           </div>
           <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+            <button type="button" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); editRentalOrder(${order.id})" title="Sửa đơn này">
+              <i class="fa-solid fa-pen-to-square"></i> Sửa
+            </button>
             ${getRentalStatusBadge(order.status)}
             ${isDraft ? `<button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); deleteDraftOrder(${order.id})" title="Xóa đơn nháp này"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
             ${!isDraft ? (order.is_paid 
@@ -202,8 +207,16 @@ function openCreateRentalModal() {
   const draftIdInput = document.getElementById('rental-editing-draft-id');
   if (draftIdInput) draftIdInput.value = '';
 
+  const statusInput = document.getElementById('rental-editing-status');
+  if (statusInput) statusInput.value = '';
+
   const titleEl = document.getElementById('modal-rental-title');
   if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
+
+  const btnSubmit = document.getElementById('btn-submit-rental');
+  if (btnSubmit) {
+    btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> Xác Nhận Tạo Đơn Thuê`;
+  }
 
   const startInput = document.getElementById('rental-start-date');
   const startTimeInput = document.getElementById('rental-start-time');
@@ -248,6 +261,9 @@ function forceCloseRentalModal() {
   if (document.getElementById('rental-editing-draft-id')) {
     document.getElementById('rental-editing-draft-id').value = '';
   }
+  if (document.getElementById('rental-editing-status')) {
+    document.getElementById('rental-editing-status').value = '';
+  }
   if (document.getElementById('rental-cust-address')) {
     document.getElementById('rental-cust-address').value = '';
   }
@@ -256,6 +272,11 @@ function forceCloseRentalModal() {
   }
   const titleEl = document.getElementById('modal-rental-title');
   if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
+
+  const btnSubmit = document.getElementById('btn-submit-rental');
+  if (btnSubmit) {
+    btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> Xác Nhận Tạo Đơn Thuê`;
+  }
 
   selectedRentalItems = [];
   renderSelectedRentalItems();
@@ -324,19 +345,33 @@ async function submitSaveDraftOrder() {
   }
 }
 
-async function editDraftOrder(id) {
+async function editRentalOrder(id) {
   try {
     const res = await fetch(`/api/rentals/${id}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Lỗi khi tải đơn nháp!');
+    if (!res.ok) throw new Error(data.message || 'Lỗi khi tải thông tin đơn thuê!');
 
     const { order, items } = data;
 
     const draftIdInput = document.getElementById('rental-editing-draft-id');
     if (draftIdInput) draftIdInput.value = order.id;
 
+    const statusInput = document.getElementById('rental-editing-status');
+    if (statusInput) statusInput.value = order.status || 'RENTED';
+
     const titleEl = document.getElementById('modal-rental-title');
-    if (titleEl) titleEl.innerText = `Chỉnh Sửa & Tiếp Tục Tạo Đơn (${order.order_code})`;
+    if (titleEl) {
+      if (order.status === 'DRAFT') {
+        titleEl.innerText = `Chỉnh Sửa & Tiếp Tục Tạo Đơn (${order.order_code})`;
+      } else {
+        titleEl.innerText = `Chỉnh Sửa Đơn Thuê (${order.order_code})`;
+      }
+    }
+
+    const btnSubmit = document.getElementById('btn-submit-rental');
+    if (btnSubmit) {
+      btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu Cập Nhật Đơn Thuê (${order.order_code})`;
+    }
 
     document.getElementById('rental-cust-name').value = order.customer_name || '';
     document.getElementById('rental-cust-phone').value = order.customer_phone || '';
@@ -367,6 +402,9 @@ async function editDraftOrder(id) {
     showToast(err.message, 'error');
   }
 }
+
+// Alias for backward compatibility
+const editDraftOrder = editRentalOrder;
 
 async function deleteDraftOrder(id) {
   if (!confirm('Bạn có chắc chắn muốn xóa đơn thuê này khỏi hệ thống?')) return;
@@ -620,6 +658,7 @@ async function createRentalOrder(e) {
   const token = localStorage.getItem('tpbd_token');
 
   const draftId = document.getElementById('rental-editing-draft-id')?.value;
+  const existingStatus = document.getElementById('rental-editing-status')?.value;
   const customer_name = document.getElementById('rental-cust-name').value.trim();
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
   const customer_address = (document.getElementById('rental-cust-address')?.value || '').trim();
@@ -640,6 +679,7 @@ async function createRentalOrder(e) {
 
   const endpoint = draftId ? `/api/rentals/${draftId}/full` : '/api/rentals';
   const method = draftId ? 'PUT' : 'POST';
+  const targetStatus = draftId ? (existingStatus || 'RENTED') : 'RENTED';
 
   try {
     const res = await fetch(endpoint, {
@@ -656,7 +696,7 @@ async function createRentalOrder(e) {
         rental_start_time,
         rental_end: null,
         rental_end_time: null,
-        status: 'RENTED',
+        status: targetStatus,
         notes,
         is_paid,
         items: selectedRentalItems
@@ -666,7 +706,7 @@ async function createRentalOrder(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Lỗi khi lưu đơn thuê!');
 
-    showToast(draftId ? 'Đã hoàn tất và tạo đơn thuê thành công!' : 'Tạo đơn thuê trang phục thành công!');
+    showToast(draftId ? 'Đã lưu cập nhật đơn thuê thành công!' : 'Tạo đơn thuê trang phục thành công!');
     forceCloseRentalModal();
     loadRentals();
     if (typeof loadDashboardStats === 'function') loadDashboardStats();
@@ -784,22 +824,18 @@ async function openOrderDetailModal(id) {
     document.getElementById('detail-cust-phone').innerText = order.customer_phone;
     document.getElementById('detail-cust-phone').href = 'tel:' + order.customer_phone;
 
-    // Render Delete button in Header next to Order Code (avoid accidental clicks)
+    // Render Edit & Delete buttons in Header next to Order Code
     const headerActionsEl = document.getElementById('detail-header-actions');
     if (headerActionsEl) {
-      if (order.status === 'DRAFT') {
-        headerActionsEl.innerHTML = `
-          <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="closeModal('modal-order-detail'); deleteDraftOrder(${order.id})" title="Xóa đơn nháp này">
-            <i class="fa-solid fa-trash-can"></i> Xóa đơn nháp
-          </button>
-        `;
-      } else {
-        headerActionsEl.innerHTML = `
-          <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="closeModal('modal-order-detail'); deleteRentalOrder(${order.id})" title="Xóa đơn hàng này">
-            <i class="fa-solid fa-trash-can"></i> Xóa đơn này
-          </button>
-        `;
-      }
+      const isDraft = order.status === 'DRAFT';
+      headerActionsEl.innerHTML = `
+        <button type="button" class="btn btn-sm btn-warning" style="padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="closeModal('modal-order-detail'); editRentalOrder(${order.id})" title="Sửa thông tin / món đồ đơn này">
+          <i class="fa-solid fa-pen-to-square"></i> Sửa Đơn
+        </button>
+        <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="closeModal('modal-order-detail'); ${isDraft ? 'deleteDraftOrder' : 'deleteRentalOrder'}(${order.id})" title="Xóa đơn này">
+          <i class="fa-solid fa-trash-can"></i> Xóa
+        </button>
+      `;
     }
 
     const addressEl = document.getElementById('detail-cust-address');
@@ -868,6 +904,9 @@ async function openOrderDetailModal(id) {
     const isMobile = window.innerWidth <= 768;
     const footer = document.getElementById('detail-actions-footer');
     let actionsHTML = `
+      <button class="btn btn-warning btn-sm" onclick="closeModal('modal-order-detail'); editRentalOrder(${order.id})">
+        <i class="fa-solid fa-pen-to-square"></i> Sửa Đơn Thuê
+      </button>
       <button class="btn btn-primary btn-sm" style="background: #2563eb; border-color: #2563eb;" onclick="exportRentalInvoice(${order.id}, 'IMAGE')">
         <i class="fa-solid fa-file-image"></i> Xuất File Ảnh (PNG)
       </button>
@@ -896,9 +935,6 @@ async function openOrderDetailModal(id) {
 
     if (order.status === 'DRAFT') {
       actionsHTML += `
-        <button class="btn btn-warning btn-sm" onclick="closeModal('modal-order-detail'); editDraftOrder(${order.id})">
-          <i class="fa-solid fa-pen-to-square"></i> Sửa & Tiếp Tục Tạo Đơn
-        </button>
         <button class="btn btn-primary btn-sm" onclick="closeModal('modal-order-detail'); updateRentalStatus(${order.id}, 'RENTED')">
           <i class="fa-solid fa-check-double"></i> Chốt Đơn (Chuyển Sang Đang Thuê)
         </button>

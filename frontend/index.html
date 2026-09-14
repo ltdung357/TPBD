@@ -576,6 +576,7 @@
       </div>
       <form id="form-rental" onsubmit="createRentalOrder(event)">
         <input type="hidden" id="rental-editing-draft-id">
+        <input type="hidden" id="rental-editing-status">
         <div class="form-row">
           <div class="form-group" style="position: relative;">
             <label>Khách Hàng *</label>
@@ -632,7 +633,7 @@
           </label>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+        <button type="submit" id="btn-submit-rental" class="btn btn-primary" style="width: 100%; justify-content: center;">
           <i class="fa-solid fa-check"></i> Xác Nhận Tạo Đơn Thuê
         </button>
       </form>
@@ -1091,7 +1092,7 @@
   <!-- Script Imports -->
   <script src="js/app.js?v=47.0"></script>
   <script src="js/costumes.js?v=47.0"></script>
-  <script src="js/rentals.js?v=49.0"></script>
+  <script src="js/rentals.js?v=50.0"></script>
   <script src="js/customers.js?v=47.0"></script>
   <script src="js/reports.js?v=47.0"></script>
 </body>
