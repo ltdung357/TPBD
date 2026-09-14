@@ -84,7 +84,12 @@ function renderRentalsTable(orders) {
                 : `<span class="badge badge-warning" style="white-space: nowrap;"><i class="fa-solid fa-clock"></i> Chưa Thanh Toán</span>`)}
         </td>
         <td>${formatVND(order.deposit_amount)}</td>
-        <td>${getRentalStatusBadge(order.status)}</td>
+        <td>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">
+            ${getRentalStatusBadge(order.status)}
+            ${isDraft ? `<button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 6px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); deleteDraftOrder(${order.id})" title="Xóa đơn nháp này"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+          </div>
+        </td>
         <td style="text-align: center; color: var(--text-muted); font-size: 12px;">
           ${isDraft 
             ? `<span style="color: #d97706; font-weight: 700;"><i class="fa-solid fa-pen-to-square"></i> Sửa nháp</span>` 
@@ -111,8 +116,9 @@ function renderRentalsTable(orders) {
             <div style="font-size: 11px; color: var(--text-muted);">Mã đơn thuê</div>
             <strong style="font-size: 15px; color: var(--primary); font-weight: 800;">${order.order_code}</strong>
           </div>
-          <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
             ${getRentalStatusBadge(order.status)}
+            ${isDraft ? `<button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); deleteDraftOrder(${order.id})" title="Xóa đơn nháp này"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
             ${!isDraft ? (order.is_paid 
               ? `<span class="badge badge-success" style="font-size: 10px;"><i class="fa-solid fa-circle-check"></i> Đã TT</span>` 
               : `<span class="badge badge-warning" style="font-size: 10px;"><i class="fa-solid fa-clock"></i> Chưa TT</span>`) : ''}
