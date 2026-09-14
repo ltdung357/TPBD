@@ -13,23 +13,9 @@ async function loadRentals(searchQuery = '') {
   }
 }
 
-// Set active filter chip and re-render
+// Set filter from select and re-render
 function setRentalFilter(type, value) {
   rentalFilter[type] = value;
-
-  // Update active chip for status group
-  if (type === 'status') {
-    document.querySelectorAll('#rental-filter-status .rental-filter-chip').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.status === value);
-    });
-  }
-  // Update active chip for payment group
-  if (type === 'pay') {
-    document.querySelectorAll('#rental-filter-payment .rental-filter-chip').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.pay === value);
-    });
-  }
-
   applyRentalFilter();
 }
 

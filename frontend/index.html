@@ -315,46 +315,27 @@
             </button>
           </div>
 
-          <!-- Filter Bar -->
-          <div class="glass-panel" style="padding: 10px 14px; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-            <span style="font-size: 12px; font-weight: 700; color: var(--text-heading); white-space: nowrap; display: flex; align-items: center; gap: 5px;">
+          <!-- Filter Bar: Compact Single Line -->
+          <div class="glass-panel" style="padding: 8px 12px; margin-bottom: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-heading); white-space: nowrap; display: flex; align-items: center; gap: 4px;">
               <i class="fa-solid fa-filter" style="color: var(--primary);"></i> Lọc:
             </span>
 
-            <!-- Status Filter Chips -->
-            <div id="rental-filter-status" style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button class="rental-filter-chip active" data-status="ALL" onclick="setRentalFilter('status','ALL')">
-                Tất cả
-              </button>
-              <button class="rental-filter-chip" data-status="RENTED" onclick="setRentalFilter('status','RENTED')">
-                <i class="fa-solid fa-truck-fast"></i> Đang thuê
-              </button>
-              <button class="rental-filter-chip" data-status="OVERDUE" onclick="setRentalFilter('status','OVERDUE')">
-                <i class="fa-solid fa-triangle-exclamation"></i> Quá hạn
-              </button>
-              <button class="rental-filter-chip" data-status="RETURNED" onclick="setRentalFilter('status','RETURNED')">
-                <i class="fa-solid fa-circle-check"></i> Đã trả đồ
-              </button>
-            </div>
+            <select id="rental-filter-status" class="form-control" style="flex: 1; min-width: 0; padding: 6px 8px; font-size: 12px; font-weight: 600;" onchange="setRentalFilter('status', this.value)">
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="RENTED">Đang thuê</option>
+              <option value="OVERDUE">Quá hạn</option>
+              <option value="RETURNED">Đã trả đồ</option>
+              <option value="CANCELLED">Đã hủy</option>
+            </select>
 
-            <!-- Divider -->
-            <div style="width: 1px; height: 22px; background: var(--border); flex-shrink: 0;"></div>
+            <select id="rental-filter-payment" class="form-control" style="flex: 1; min-width: 0; padding: 6px 8px; font-size: 12px; font-weight: 600;" onchange="setRentalFilter('pay', this.value)">
+              <option value="ALL">Mọi thanh toán</option>
+              <option value="UNPAID">Chưa thanh toán</option>
+              <option value="PAID">Đã thanh toán</option>
+            </select>
 
-            <!-- Payment Filter Chips -->
-            <div id="rental-filter-payment" style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button class="rental-filter-chip active" data-pay="ALL" onclick="setRentalFilter('pay','ALL')">
-                Mọi TT
-              </button>
-              <button class="rental-filter-chip" data-pay="UNPAID" onclick="setRentalFilter('pay','UNPAID')">
-                <i class="fa-solid fa-clock"></i> Chưa TT
-              </button>
-              <button class="rental-filter-chip" data-pay="PAID" onclick="setRentalFilter('pay','PAID')">
-                <i class="fa-solid fa-circle-check"></i> Đã TT
-              </button>
-            </div>
-
-            <!-- Result count -->
-            <span id="rental-filter-count" style="margin-left: auto; font-size: 11px; font-weight: 700; color: var(--text-muted); white-space: nowrap;"></span>
+            <span id="rental-filter-count" style="font-size: 11px; font-weight: 700; color: var(--text-muted); white-space: nowrap;"></span>
           </div>
 
           <div class="glass-panel" style="padding: 20px;">
