@@ -101,6 +101,16 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('vi-VN');
 }
 
+// Format Date + Time
+function formatDateTime(dateStr, timeStr) {
+  if (!dateStr) return 'N/A';
+  const formattedDate = formatDate(dateStr);
+  if (timeStr && timeStr.trim()) {
+    return `${formattedDate} ${timeStr.trim()}`;
+  }
+  return formattedDate;
+}
+
 // Check JWT Authentication (Public guest browsing allowed for costumes)
 async function checkAuth() {
   const token = localStorage.getItem('tpbd_token');

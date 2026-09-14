@@ -137,6 +137,7 @@ router.post('/', verifyToken, async (req, res) => {
       });
     }
 
+    const { customer_name, customer_phone, customer_email, customer_address, rental_start, rental_start_time, rental_end, rental_end_time, deposit_amount, notes, items } = req.body;
     const orderStatus = req.body.status === 'DRAFT' ? 'DRAFT' : 'RENTED';
     const is_paid = orderStatus === 'DRAFT' ? false : (req.body.is_paid === true || req.body.is_paid === 'true');
     const orderCode = 'HDT-' + Math.floor(100000 + Math.random() * 900000);
@@ -144,9 +145,9 @@ router.post('/', verifyToken, async (req, res) => {
     // Tạo đơn hàng
     const orderRes = await client.query(
       `INSERT INTO rental_orders (
-        order_code, customer_name, customer_phone, customer_email, customer_address, rental_start, rental_end,
+        order_code, customer_name, customer_phone, customer_email, customer_address, rental_start, rental_start_time, rental_end, rental_end_time,
         total_amount, deposit_amount, status, notes, created_by, is_paid
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
       [
         orderCode,
         customer_name,
@@ -154,7 +155,9 @@ router.post('/', verifyToken, async (req, res) => {
         customer_email || '',
         customer_address || '',
         rental_start,
+        rental_start_time || '',
         rental_end || null,
+        rental_end_time || '',
         totalAmount,
         totalDeposit,
         orderStatus,
@@ -326,18 +329,22 @@ router.put('/:id/full', verifyToken, async (req, res) => {
       );
     }
 
+    const { customer_name, customer_phone, customer_email, customer_address, rental_start, rental_start_time, rental_end, rental_end_time, notes } = req.body;
+
     const orderRes = await client.query(
       `UPDATE rental_orders 
-       SET customer_name = $1, customer_phone = $2, customer_email = $3, customer_address = $4, rental_start = $5, rental_end = $6,
-           total_amount = $7, deposit_amount = $8, status = $9, notes = $10, is_paid = $11
-       WHERE id = $12 RETURNING *`,
+       SET customer_name = $1, customer_phone = $2, customer_email = $3, customer_address = $4, rental_start = $5, rental_start_time = $6, rental_end = $7, rental_end_time = $8,
+           total_amount = $9, deposit_amount = $10, status = $11, notes = $12, is_paid = $13
+       WHERE id = $14 RETURNING *`,
       [
         customer_name,
         customer_phone,
         customer_email || '',
         customer_address || '',
         rental_start,
+        rental_start_time || '',
         rental_end || null,
+        rental_end_time || '',
         totalAmount,
         totalDeposit,
         orderStatus,
@@ -389,7 +396,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
 // Cập nhật trạng thái đơn thuê (Ví dụ: Khách trả đồ -> Cộng lại kho)
 router.put('/:id/status', verifyToken, async (req, res) => {
   const { id } = req.params;
-  const { status, rental_end } = req.body; // 'RETURNED', 'CANCELLED'
+  const { status, rental_end, rental_end_time } = req.body; // 'RETURNED', 'CANCELLED'
 
   if (!status) return res.status(400).json({ message: 'Vui lòng chọn trạng thái mới!' });
 
@@ -406,6 +413,7 @@ router.put('/:id/status', verifyToken, async (req, res) => {
 
     if (status === 'RETURNED') {
       const returnDate = rental_end || new Date().toISOString().split('T')[0];
+      const returnTime = rental_end_time || '';
       let newTotalAmount = parseFloat(currentOrder.total_amount);
 
       if (returnDate && currentOrder.rental_start) {
@@ -428,8 +436,8 @@ router.put('/:id/status', verifyToken, async (req, res) => {
       }
 
       await client.query(
-        `UPDATE rental_orders SET status = $1, rental_end = $2, total_amount = $3 WHERE id = $4`,
-        [status, returnDate, newTotalAmount, id]
+        `UPDATE rental_orders SET status = $1, rental_end = $2, rental_end_time = $3, total_amount = $4 WHERE id = $5`,
+        [status, returnDate, returnTime, newTotalAmount, id]
       );
     } else {
       await client.query(`UPDATE rental_orders SET status = $1 WHERE id = $2`, [status, id]);

@@ -67,7 +67,7 @@ function renderRentalsTable(orders) {
         <td><strong style="color: var(--primary);">${order.order_code}</strong></td>
         <td>${order.customer_name}</td>
         <td>${order.customer_phone}</td>
-        <td>${formatDate(order.rental_start)}</td>
+        <td>${formatDateTime(order.rental_start, order.rental_start_time)}</td>
         <td><strong style="color: var(--success);">${formatVND(order.total_amount)}</strong></td>
         <td>
           ${isDraft 
@@ -146,12 +146,12 @@ function renderRentalsTable(orders) {
         <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);">
           <div>
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Ngày nhận đồ</span>
-            <b style="font-size: 12px; color: var(--text-heading);">${formatDate(order.rental_start)}</b>
+            <b style="font-size: 12px; color: var(--text-heading);">${formatDateTime(order.rental_start, order.rental_start_time)}</b>
           </div>
           ${order.rental_end ? `
             <div style="text-align: right;">
               <span style="font-size: 11px; color: var(--text-muted); display: block;">Ngày trả đồ</span>
-              <b style="font-size: 12px; color: var(--success);">${formatDate(order.rental_end)}</b>
+              <b style="font-size: 12px; color: var(--success);">${formatDateTime(order.rental_end, order.rental_end_time)}</b>
             </div>
           ` : ''}
         </div>
@@ -206,9 +206,16 @@ function openCreateRentalModal() {
   if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
 
   const startInput = document.getElementById('rental-start-date');
+  const startTimeInput = document.getElementById('rental-start-time');
   const endInput = document.getElementById('rental-end-date');
   if (startInput) {
     startInput.value = new Date().toISOString().split('T')[0];
+  }
+  if (startTimeInput) {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    startTimeInput.value = `${h}:${m}`;
   }
   if (endInput) {
     endInput.value = '';
@@ -244,6 +251,9 @@ function forceCloseRentalModal() {
   if (document.getElementById('rental-cust-address')) {
     document.getElementById('rental-cust-address').value = '';
   }
+  if (document.getElementById('rental-start-time')) {
+    document.getElementById('rental-start-time').value = '';
+  }
   const titleEl = document.getElementById('modal-rental-title');
   if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
 
@@ -269,6 +279,7 @@ async function submitSaveDraftOrder() {
   const customer_phone = document.getElementById('rental-cust-phone').value.trim() || '0000000000';
   const customer_address = (document.getElementById('rental-cust-address')?.value || '').trim();
   const rental_start = document.getElementById('rental-start-date').value || new Date().toISOString().split('T')[0];
+  const rental_start_time = document.getElementById('rental-start-time')?.value || '';
   const notes = document.getElementById('rental-notes').value.trim();
 
   if (!selectedRentalItems || selectedRentalItems.length === 0) {
@@ -291,7 +302,9 @@ async function submitSaveDraftOrder() {
         customer_phone,
         customer_address,
         rental_start,
+        rental_start_time,
         rental_end: null,
+        rental_end_time: null,
         status: 'DRAFT',
         notes,
         is_paid: false,
@@ -331,6 +344,9 @@ async function editDraftOrder(id) {
       document.getElementById('rental-cust-address').value = order.customer_address || '';
     }
     document.getElementById('rental-start-date').value = order.rental_start ? order.rental_start.split('T')[0] : new Date().toISOString().split('T')[0];
+    if (document.getElementById('rental-start-time')) {
+      document.getElementById('rental-start-time').value = order.rental_start_time || '';
+    }
     document.getElementById('rental-notes').value = order.notes || '';
 
     const isPaidCheck = document.getElementById('rental-is-paid');
@@ -608,6 +624,7 @@ async function createRentalOrder(e) {
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
   const customer_address = (document.getElementById('rental-cust-address')?.value || '').trim();
   const rental_start = document.getElementById('rental-start-date').value;
+  const rental_start_time = document.getElementById('rental-start-time')?.value || '';
   const notes = document.getElementById('rental-notes').value.trim();
   const is_paid = document.getElementById('rental-is-paid')?.checked || false;
 
@@ -636,7 +653,9 @@ async function createRentalOrder(e) {
         customer_phone,
         customer_address,
         rental_start,
+        rental_start_time,
         rental_end: null,
+        rental_end_time: null,
         status: 'RENTED',
         notes,
         is_paid,
@@ -788,11 +807,11 @@ async function openOrderDetailModal(id) {
       addressEl.innerText = order.customer_address || 'Chưa cập nhật địa chỉ';
     }
 
-    document.getElementById('detail-rental-start').innerText = formatDate(order.rental_start);
+    document.getElementById('detail-rental-start').innerText = formatDateTime(order.rental_start, order.rental_start_time);
     const endContainer = document.getElementById('detail-rental-end-container');
     if (order.rental_end) {
       if (endContainer) endContainer.style.display = 'block';
-      document.getElementById('detail-rental-end').innerText = formatDate(order.rental_end);
+      document.getElementById('detail-rental-end').innerText = formatDateTime(order.rental_end, order.rental_end_time);
     } else {
       if (endContainer) endContainer.style.display = 'none';
     }
@@ -911,25 +930,36 @@ function setupAndOpenReturnModal(order) {
   document.getElementById('return-rental-code').innerText = order.order_code;
   document.getElementById('return-rental-cust').innerText = `${order.customer_name} (${order.customer_phone})`;
   
-  // Set default return date to TODAY
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Set default return date to TODAY and return time to current time
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
   document.getElementById('return-rental-date').value = todayStr;
+  const timeInput = document.getElementById('return-rental-time');
+  if (timeInput) timeInput.value = timeStr;
 
   openModal('modal-return-rental');
 }
 
 function setReturnDateToToday() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
   const dateInput = document.getElementById('return-rental-date');
   if (dateInput) dateInput.value = todayStr;
+  const timeInput = document.getElementById('return-rental-time');
+  if (timeInput) timeInput.value = timeStr;
 }
 
-// Submit Return Rental with selected date
+// Submit Return Rental with selected date & time
 async function submitReturnRental(e) {
   e.preventDefault();
   const token = localStorage.getItem('tpbd_token');
   const id = document.getElementById('return-rental-id').value;
   const rental_end = document.getElementById('return-rental-date').value;
+  const rental_end_time = document.getElementById('return-rental-time')?.value || '';
 
   try {
     const res = await fetch(`/api/rentals/${id}/status`, {
@@ -938,7 +968,7 @@ async function submitReturnRental(e) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ status: 'RETURNED', rental_end })
+      body: JSON.stringify({ status: 'RETURNED', rental_end, rental_end_time })
     });
 
     const data = await res.json();
