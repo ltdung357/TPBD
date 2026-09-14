@@ -191,8 +191,6 @@ function getRentalStatusBadge(status) {
       return `<span class="badge" style="background: #64748b; color: #ffffff;"><i class="fa-solid fa-file-pen"></i> Nháp</span>`;
     case 'RETURNED':
       return `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Đã Trả Đồ</span>`;
-    case 'OVERDUE':
-      return `<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Quá Hạn</span>`;
     case 'CANCELLED':
       return `<span class="badge badge-warning"><i class="fa-solid fa-xmark"></i> Đã Hủy</span>`;
     default:
@@ -843,7 +841,7 @@ async function openOrderDetailModal(id) {
       `;
     }
 
-    if (['RENTED', 'OVERDUE'].includes(order.status)) {
+    if (order.status === 'RENTED') {
       actionsHTML += `
         <button class="btn btn-success btn-sm" onclick="closeModal('modal-order-detail'); openReturnRentalModal(${order.id})">
           <i class="fa-solid fa-check"></i> Xác Nhận Trả Đồ

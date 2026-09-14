@@ -132,6 +132,7 @@ const initDatabase = async () => {
       ALTER TABLE rental_orders ALTER COLUMN rental_end DROP NOT NULL;
       ALTER TABLE rental_orders ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT false;
       ALTER TABLE rental_orders ADD COLUMN IF NOT EXISTS customer_address TEXT;
+      UPDATE rental_orders SET status = 'RENTED' WHERE status = 'OVERDUE';
 
       CREATE TABLE IF NOT EXISTS rental_items (
         id SERIAL PRIMARY KEY,

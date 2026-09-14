@@ -25,7 +25,6 @@ router.get('/dashboard', async (req, res) => {
         COUNT(CASE WHEN status != 'DRAFT' THEN 1 END) as total_orders,
         SUM(CASE WHEN status = 'RENTED' THEN 1 ELSE 0 END) as active_rentals,
         SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) as completed_rentals,
-        SUM(CASE WHEN status = 'OVERDUE' THEN 1 ELSE 0 END) as overdue_rentals,
         COALESCE(SUM(CASE WHEN is_paid = true AND status != 'DRAFT' THEN total_amount ELSE 0 END), 0) as rental_revenue
       FROM rental_orders
     `);
@@ -47,11 +46,11 @@ router.get('/dashboard', async (req, res) => {
       FROM choreography_bookings
     `);
 
-    // 4. Các đơn cần chú ý (Sắp quá hạn hoặc đã quá hạn)
+    // 4. Các đơn cần chú ý (Đang thuê)
     const urgentRentals = await pool.query(`
       SELECT id, order_code, customer_name, customer_phone, rental_end, status, total_amount
       FROM rental_orders
-      WHERE status IN ('RENTED', 'OVERDUE')
+      WHERE status = 'RENTED'
       ORDER BY rental_end ASC NULLS LAST
       LIMIT 5
     `);
@@ -79,7 +78,6 @@ router.get('/dashboard', async (req, res) => {
         total_inventory: parseInt(costumeStats.total_inventory || 0, 10),
         available_inventory: parseInt(costumeStats.available_inventory || 0, 10),
         active_rentals: parseInt(rentalStats.active_rentals || 0, 10),
-        overdue_rentals: parseInt(rentalStats.overdue_rentals || 0, 10),
         total_choreographers: parseInt(choreoStats.total_choreographers || 0, 10),
         active_bookings: parseInt(bookingStats.active_bookings || 0, 10),
         rental_revenue: parseFloat(rentalStats.rental_revenue || 0),

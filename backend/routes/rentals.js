@@ -389,7 +389,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
 // Cập nhật trạng thái đơn thuê (Ví dụ: Khách trả đồ -> Cộng lại kho)
 router.put('/:id/status', verifyToken, async (req, res) => {
   const { id } = req.params;
-  const { status, rental_end } = req.body; // 'RETURNED', 'OVERDUE', 'CANCELLED'
+  const { status, rental_end } = req.body; // 'RETURNED', 'CANCELLED'
 
   if (!status) return res.status(400).json({ message: 'Vui lòng chọn trạng thái mới!' });
 
