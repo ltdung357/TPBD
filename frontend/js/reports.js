@@ -46,7 +46,8 @@ function renderUrgentRentals(items) {
   if (cardsContainer) {
     cardsContainer.innerHTML = items.map(item => {
       const isReturned = item.status === 'RETURNED';
-      const borderClass = isReturned ? 'rental-card-returned' : 'rental-card-unreturned';
+      const isPaid = !!item.is_paid;
+      const borderClass = (isReturned && isPaid) ? 'rental-card-returned' : 'rental-card-unreturned';
 
       return `
         <div class="rental-card-mobile ${borderClass}" onclick="openOrderDetailModal(${item.id})" style="cursor: pointer;">

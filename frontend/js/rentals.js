@@ -105,7 +105,9 @@ function renderRentalsTable(orders) {
     cardsContainer.innerHTML = orders.map(order => {
       const isDraft = order.status === 'DRAFT';
       const isReturned = order.status === 'RETURNED';
-      const borderClass = isDraft ? 'rental-card-draft' : (isReturned ? 'rental-card-returned' : 'rental-card-unreturned');
+      const isPaid = !!order.is_paid;
+      // Chỉ khi Đã Trả Đồ VÀ Đã Thanh Toán mới hiện màu xanh (rental-card-returned), chưa trả đồ HOẶC chưa thanh toán thì vẫn màu đỏ (rental-card-unreturned)
+      const borderClass = isDraft ? 'rental-card-draft' : ((isReturned && isPaid) ? 'rental-card-returned' : 'rental-card-unreturned');
       const clickHandler = isDraft ? `editDraftOrder(${order.id})` : `openOrderDetailModal(${order.id})`;
 
       return `
