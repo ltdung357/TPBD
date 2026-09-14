@@ -769,6 +769,24 @@ async function openOrderDetailModal(id) {
     document.getElementById('detail-cust-phone').innerText = order.customer_phone;
     document.getElementById('detail-cust-phone').href = 'tel:' + order.customer_phone;
 
+    // Render Delete button in Header next to Order Code (avoid accidental clicks)
+    const headerActionsEl = document.getElementById('detail-header-actions');
+    if (headerActionsEl) {
+      if (order.status === 'DRAFT') {
+        headerActionsEl.innerHTML = `
+          <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="closeModal('modal-order-detail'); deleteDraftOrder(${order.id})" title="Xóa đơn nháp này">
+            <i class="fa-solid fa-trash-can"></i> Xóa đơn nháp
+          </button>
+        `;
+      } else {
+        headerActionsEl.innerHTML = `
+          <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="closeModal('modal-order-detail'); deleteRentalOrder(${order.id})" title="Xóa đơn hàng này">
+            <i class="fa-solid fa-trash-can"></i> Xóa đơn này
+          </button>
+        `;
+      }
+    }
+
     const addressEl = document.getElementById('detail-cust-address');
     if (addressEl) {
       addressEl.innerText = order.customer_address || 'Chưa cập nhật địa chỉ';
@@ -856,15 +874,6 @@ async function openOrderDetailModal(id) {
         </button>
         <button class="btn btn-primary btn-sm" onclick="closeModal('modal-order-detail'); updateRentalStatus(${order.id}, 'RENTED')">
           <i class="fa-solid fa-check-double"></i> Chốt Đơn (Chuyển Sang Đang Thuê)
-        </button>
-        <button class="btn btn-danger btn-sm" onclick="closeModal('modal-order-detail'); deleteDraftOrder(${order.id})">
-          <i class="fa-solid fa-trash"></i> Xóa Đơn Nháp
-        </button>
-      `;
-    } else {
-      actionsHTML += `
-        <button class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="closeModal('modal-order-detail'); deleteRentalOrder(${order.id})">
-          <i class="fa-solid fa-trash-can"></i> Xóa Đơn Này
         </button>
       `;
     }

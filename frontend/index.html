@@ -725,9 +725,12 @@
   <div id="modal-order-detail" class="modal-overlay">
     <div class="modal-box glass-panel" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column; padding: 24px;">
       <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-        <div>
-          <h3 id="detail-order-code" style="font-size: 18px; font-weight: 800; color: var(--primary);">HDT-XXXXXX</h3>
-          <span id="detail-order-date" style="font-size: 12px; color: var(--text-muted);">Ngày tạo: --/--/----</span>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h3 id="detail-order-code" style="font-size: 18px; font-weight: 800; color: var(--primary); margin: 0;">HDT-XXXXXX</h3>
+            <span id="detail-header-actions"></span>
+          </div>
+          <span id="detail-order-date" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 2px;">Ngày tạo: --/--/----</span>
         </div>
         <button class="modal-close" onclick="closeModal('modal-order-detail')">&times;</button>
       </div>
@@ -1067,10 +1070,10 @@
   <div id="toast-container"></div>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=33.0"></script>
-  <script src="js/costumes.js?v=33.0"></script>
-  <script src="js/rentals.js?v=33.0"></script>
-  <script src="js/customers.js?v=33.0"></script>
-  <script src="js/reports.js?v=33.0"></script>
+  <script src="js/app.js?v=34.0"></script>
+  <script src="js/costumes.js?v=34.0"></script>
+  <script src="js/rentals.js?v=34.0"></script>
+  <script src="js/customers.js?v=34.0"></script>
+  <script src="js/reports.js?v=34.0"></script>
 </body>
 </html>
