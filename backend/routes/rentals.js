@@ -84,7 +84,9 @@ router.post('/', verifyToken, async (req, res) => {
     customer_email,
     customer_address,
     rental_start,
+    rental_start_time,
     rental_end,
+    rental_end_time,
     deposit_amount,
     notes,
     items, // Array of { costume_id, qty }
@@ -137,7 +139,6 @@ router.post('/', verifyToken, async (req, res) => {
       });
     }
 
-    const { customer_name, customer_phone, customer_email, customer_address, rental_start, rental_start_time, rental_end, rental_end_time, deposit_amount, notes, items } = req.body;
     const orderStatus = req.body.status === 'DRAFT' ? 'DRAFT' : 'RENTED';
     const is_paid = orderStatus === 'DRAFT' ? false : (req.body.is_paid === true || req.body.is_paid === 'true');
     const orderCode = 'HDT-' + Math.floor(100000 + Math.random() * 900000);
@@ -260,7 +261,9 @@ router.put('/:id/full', verifyToken, async (req, res) => {
     customer_email,
     customer_address,
     rental_start,
+    rental_start_time,
     rental_end,
+    rental_end_time,
     deposit_amount,
     status,
     notes,
@@ -329,7 +332,7 @@ router.put('/:id/full', verifyToken, async (req, res) => {
       );
     }
 
-    const { customer_name, customer_phone, customer_email, customer_address, rental_start, rental_start_time, rental_end, rental_end_time, notes } = req.body;
+
 
     const orderRes = await client.query(
       `UPDATE rental_orders 
