@@ -242,6 +242,12 @@ function openCreateRentalModal() {
 }
 
 function handleCloseRentalModal() {
+  const isEditing = !!(document.getElementById('rental-editing-draft-id')?.value);
+  if (isEditing) {
+    forceCloseRentalModal();
+    return;
+  }
+
   const custName = (document.getElementById('rental-cust-name')?.value || '').trim();
   const custPhone = (document.getElementById('rental-cust-phone')?.value || '').trim();
   const custAddress = (document.getElementById('rental-cust-address')?.value || '').trim();
