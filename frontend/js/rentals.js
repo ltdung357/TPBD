@@ -846,8 +846,11 @@ async function openOrderDetailModal(id) {
     // Actions Footer
     const footer = document.getElementById('detail-actions-footer');
     let actionsHTML = `
-      <button class="btn btn-outline btn-sm" onclick="exportRentalInvoice(${order.id})">
-        <i class="fa-solid fa-file-pdf"></i> In / Xuất Hóa Đơn (PDF)
+      <button class="btn btn-primary btn-sm" style="background: #2563eb; border-color: #2563eb;" onclick="exportRentalInvoice(${order.id}, 'IMAGE')">
+        <i class="fa-solid fa-file-image"></i> Xuất File Ảnh (PNG)
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="exportRentalInvoice(${order.id}, 'PDF')">
+        <i class="fa-solid fa-file-pdf"></i> In / Xuất PDF
       </button>
     `;
 
@@ -1008,8 +1011,8 @@ function docSoThanhChu(number) {
   return result.charAt(0).toUpperCase() + result.slice(1) + ' đồng.';
 }
 
-// Export Rental Invoice matching Hoa_Don_Ban_Hang_Le.XLS template 100%
-async function exportRentalInvoice(id) {
+// Export Rental Invoice matching Hoa_Don_Ban_Hang_Le.XLS template 100% (Supports PDF & PNG Image)
+async function exportRentalInvoice(id, mode = 'PREVIEW') {
   try {
     const res = await fetch(`/api/rentals/${id}`);
     const data = await res.json();
@@ -1052,12 +1055,100 @@ async function exportRentalInvoice(id) {
     const totalAmountNum = parseFloat(order.total_amount || 0);
     const amountInWords = docSoThanhChu(totalAmountNum);
 
+    // Direct Image Download Mode
+    if (mode === 'IMAGE' && typeof html2canvas !== 'undefined') {
+      showToast('Đang tạo file ảnh hóa đơn...', 'info');
+
+      const tempContainer = document.createElement('div');
+      tempContainer.style.cssText = 'position: absolute; left: -9999px; top: -9999px; width: 800px; background: #ffffff; padding: 24px; font-family: "Times New Roman", Times, serif; color: #000;';
+      tempContainer.innerHTML = `
+        <div class="invoice-box" style="max-width: 760px; margin: 0 auto; background: #fff; padding: 20px;">
+          <div style="width: 100%; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="width: 42%; text-align: center; vertical-align: top;">
+                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 14pt; font-weight: bold;">TRANG PHỤC BIỂU DIỄN</div>
+                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 28pt; font-weight: bold; margin-top: 4px;">THÚY HÀ</div>
+                </td>
+                <td style="width: 58%; font-size: 12pt; font-weight: bold; line-height: 1.6; vertical-align: top; padding-left: 15px;">
+                  <div>Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
+                  <div>SĐT: 0394378999 - 0962384661</div>
+                  <div>FB: Ha Minh - Mai Diệu Thúy</div>
+                  <div>STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="font-size: 13.5pt; line-height: 2; margin-bottom: 20px;">
+            <div>Tên khách hàng: <span style="display: inline-block; border-bottom: 1px dotted #000; width: 73%; font-weight: bold; padding-left: 8px;">${order.customer_name}</span></div>
+            <div>Địa chỉ: <span style="display: inline-block; border-bottom: 1px dotted #000; width: 83%; font-weight: bold; padding-left: 8px;">${order.customer_address || ''}</span></div>
+            <div>Sđt: <span style="display: inline-block; border-bottom: 1px dotted #000; width: 85%; font-weight: bold; padding-left: 8px;">${order.customer_phone}</span></div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+              <tr>
+                <th style="border: 1px solid #000; padding: 6px; font-size: 13pt; width: 45px; text-align: center; background: #f2f2f2;">TT</th>
+                <th style="border: 1px solid #000; padding: 6px; font-size: 13pt; text-align: center; background: #f2f2f2;">TÊN TRANG PHỤC</th>
+                <th style="border: 1px solid #000; padding: 6px; font-size: 13pt; width: 60px; text-align: center; background: #f2f2f2;">SL</th>
+                <th style="border: 1px solid #000; padding: 6px; font-size: 13pt; width: 120px; text-align: center; background: #f2f2f2;">ĐƠN GIÁ</th>
+                <th style="border: 1px solid #000; padding: 6px; font-size: 13pt; width: 140px; text-align: center; background: #f2f2f2;">THÀNH TIỀN</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHTML.replace(/<td/g, '<td style="border: 1px solid #000; padding: 6px; font-size: 12.5pt; height: 26px;"')}
+              <tr>
+                <td colspan="4" style="border: 1px solid #000; padding: 6px; font-weight: bold; text-align: center; font-size: 13.5pt;">TỔNG CỘNG</td>
+                <td style="border: 1px solid #000; padding: 6px; font-weight: bold; text-align: right; font-size: 14pt;">${formatVND(order.total_amount).replace(' đ', '')}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="font-size: 13.5pt; margin-top: 15px; margin-bottom: 30px; line-height: 1.6;">
+            Thành tiền: <strong>${amountInWords}</strong>
+          </div>
+
+          <div style="width: 100%; margin-top: 20px;">
+            <div style="float: right; width: 280px; text-align: center; font-size: 13pt;">
+              <div style="margin-bottom: 8px;">Ngày ${day} tháng ${month} năm ${year}</div>
+              <div style="font-weight: bold; font-size: 13.5pt;">NGƯỜI BÁN HÀNG</div>
+            </div>
+            <div style="clear: both;"></div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(tempContainer);
+
+      const canvas = await html2canvas(tempContainer, {
+        scale: 2.5,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false
+      });
+
+      tempContainer.remove();
+
+      const imgData = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = imgData;
+      a.download = `HoaDon_${order.order_code}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      showToast('Đã tải thành công file ảnh hóa đơn!', 'success');
+      return;
+    }
+
     const invoiceHTML = `
       <!DOCTYPE html>
       <html lang="vi">
       <head>
         <meta charset="UTF-8">
         <title>Hóa Đơn Bán Hàng - ${order.order_code}</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
         <style>
           @page {
             size: A4 portrait;
@@ -1069,7 +1160,7 @@ async function exportRentalInvoice(id) {
             color: #000;
             background: #fff;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             -webkit-print-color-adjust: exact;
           }
           .invoice-box {
@@ -1181,6 +1272,7 @@ async function exportRentalInvoice(id) {
           }
 
           @media print {
+            .no-print-bar { display: none !important; }
             #print-invoice-frame-overlay,
             #print-invoice-frame-overlay * {
               visibility: visible !important;
@@ -1200,12 +1292,15 @@ async function exportRentalInvoice(id) {
         </style>
       </head>
       <body>
-        <div class="no-print-bar" style="background: #3b82f6; color: #fff; padding: 12px; text-align: center; font-family: sans-serif; font-size: 14px; position: sticky; top: 0; z-index: 9999; display: flex; justify-content: center; gap: 12px; align-items: center;">
+        <div class="no-print-bar" style="background: #1e293b; color: #fff; padding: 12px; text-align: center; font-family: sans-serif; font-size: 14px; position: sticky; top: 0; z-index: 9999; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
           <span><strong>Mẫu Hóa Đơn TPBD Thúy Hà (Chuẩn 100% Excel)</strong></span>
-          <button onclick="window.print()" style="background: #fff; color: #1d4ed8; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+          <button id="btn-download-img" onclick="downloadInvoiceImage()" style="background: #22c55e; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+            🖼️ Tải File Ảnh (.PNG)
+          </button>
+          <button onclick="window.print()" style="background: #3b82f6; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
             🖨️ In / Tải File PDF
           </button>
-          <button onclick="window.close()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+          <button onclick="closeInvoice()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
             Đóng
           </button>
         </div>
@@ -1272,46 +1367,71 @@ async function exportRentalInvoice(id) {
         </div>
 
         <script>
+          async function downloadInvoiceImage() {
+            const btn = document.getElementById('btn-download-img');
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '⏳ Đang tạo ảnh...';
+            btn.disabled = true;
+
+            try {
+              const element = document.querySelector('.invoice-box');
+              const canvas = await html2canvas(element, {
+                scale: 2.5,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false
+              });
+
+              const imgData = canvas.toDataURL('image/png');
+              const a = document.createElement('a');
+              a.href = imgData;
+              a.download = 'HoaDon_${order.order_code}.png';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            } catch(e) {
+              alert('Lỗi tạo ảnh: ' + e.message);
+            } finally {
+              btn.innerHTML = oldText;
+              btn.disabled = false;
+            }
+          }
+
+          function closeInvoice() {
+            if (window.parent && window.parent.document.getElementById('print-invoice-frame-overlay')) {
+              window.parent.document.getElementById('print-invoice-frame-overlay').remove();
+            } else {
+              window.close();
+            }
+          }
+
           window.onload = function() {
-            setTimeout(function() {
-              window.print();
-            }, 300);
+            if ('${mode}' === 'PDF') {
+              setTimeout(function() {
+                window.print();
+              }, 300);
+            }
           };
         </script>
       </body>
       </html>
     `;
 
-    // === Mobile-safe: dùng Blob URL + iframe ẩn, không cần popup ===
+    // === Mobile-safe: dùng Blob URL + iframe overlay ===
     const blob = new Blob([invoiceHTML], { type: 'text/html; charset=utf-8' });
     const blobUrl = URL.createObjectURL(blob);
 
-    // Xóa iframe cũ nếu còn
     const oldFrame = document.getElementById('print-invoice-frame-overlay');
     if (oldFrame) oldFrame.remove();
 
-    // Tạo iframe ẩn nhúng vào trang
     const iframe = document.createElement('iframe');
     iframe.id = 'print-invoice-frame-overlay';
     iframe.src = blobUrl;
     iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:999999;background:#fff;';
     document.body.appendChild(iframe);
 
-    // Nút đóng iframe (hiển thị trong iframe header, nhưng thêm nút đóng bên ngoài phòng hờ)
     iframe.onload = function () {
-      URL.revokeObjectURL(blobUrl); // giải phóng bộ nhớ
-      // Gắn nút đóng vào iframe document nếu có thể truy cập
-      try {
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const closeButtons = iframeDoc.querySelectorAll('button');
-        closeButtons.forEach(btn => {
-          if (btn.textContent.includes('Đóng')) {
-            btn.addEventListener('click', () => {
-              iframe.remove();
-            });
-          }
-        });
-      } catch (e) { /* cross-origin safe */ }
+      URL.revokeObjectURL(blobUrl);
     };
   } catch (err) {
     showToast(err.message, 'error');
