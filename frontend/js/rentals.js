@@ -345,7 +345,7 @@ async function editDraftOrder(id) {
 }
 
 async function deleteDraftOrder(id) {
-  if (!confirm('Bạn có chắc chắn muốn xóa đơn nháp này?')) return;
+  if (!confirm('Bạn có chắc chắn muốn xóa đơn thuê này khỏi hệ thống?')) return;
   const token = localStorage.getItem('tpbd_token');
   try {
     const res = await fetch(`/api/rentals/${id}`, {
@@ -355,13 +355,15 @@ async function deleteDraftOrder(id) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Xóa đơn thất bại!');
 
-    showToast(data.message || 'Đã xóa đơn nháp!');
+    showToast(data.message || 'Đã xóa đơn thuê thành công!');
     loadRentals();
     if (typeof loadDashboardStats === 'function') loadDashboardStats();
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
+
+const deleteRentalOrder = deleteDraftOrder;
 
 // Render selected items list in #modal-rental
 function renderSelectedRentalItems() {
@@ -836,6 +838,12 @@ async function openOrderDetailModal(id) {
         </button>
         <button class="btn btn-danger btn-sm" onclick="closeModal('modal-order-detail'); deleteDraftOrder(${order.id})">
           <i class="fa-solid fa-trash"></i> Xóa Đơn Nháp
+        </button>
+      `;
+    } else {
+      actionsHTML += `
+        <button class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="closeModal('modal-order-detail'); deleteRentalOrder(${order.id})">
+          <i class="fa-solid fa-trash-can"></i> Xóa Đơn Này
         </button>
       `;
     }
