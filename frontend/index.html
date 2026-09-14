@@ -66,6 +66,11 @@
       background: rgba(239, 68, 68, 0.02) !important;
     }
 
+    .rental-card-draft {
+      border: 2px solid #64748b !important;
+      background: rgba(100, 116, 139, 0.04) !important;
+    }
+
     .mobile-bottom-nav {
       display: flex !important;
       position: fixed !important;
@@ -324,6 +329,7 @@
             <select id="rental-filter-status" class="form-control" style="flex: 1; min-width: 0; padding: 6px 8px; font-size: 12px; font-weight: 600;" onchange="setRentalFilter('status', this.value)">
               <option value="ALL">Tất cả trạng thái</option>
               <option value="RENTED">Đang thuê</option>
+              <option value="DRAFT">Nháp</option>
               <option value="OVERDUE">Quá hạn</option>
               <option value="RETURNED">Đã trả đồ</option>
               <option value="CANCELLED">Đã hủy</option>
@@ -595,6 +601,22 @@
         <div class="form-group">
           <label>Ngày Nhận Đồ *</label>
           <input type="date" id="rental-start-date" class="form-control" required>
+        </div>
+
+        <div class="form-group" style="background: rgba(0, 0, 0, 0.02); padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
+          <label style="font-weight: 700; margin-bottom: 6px; display: block; font-size: 13px; color: var(--text-heading);">
+            Trạng Thái Đơn Hàng *
+          </label>
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; font-weight: 700; color: var(--primary);">
+              <input type="radio" name="rental_status" value="RENTED" checked style="accent-color: var(--primary); width: 16px; height: 16px;">
+              <i class="fa-solid fa-truck-fast"></i> Đang Thuê (Chính thức)
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; font-weight: 700; color: #64748b;">
+              <input type="radio" name="rental_status" value="DRAFT" style="accent-color: #64748b; width: 16px; height: 16px;">
+              <i class="fa-solid fa-file-pen"></i> Lưu Nháp (Khung xám)
+            </label>
+          </div>
         </div>
 
         <!-- Visual Items Picker Container -->
@@ -1039,10 +1061,10 @@
   <div id="toast-container"></div>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=20.0"></script>
-  <script src="js/costumes.js?v=20.0"></script>
-  <script src="js/rentals.js?v=20.0"></script>
-  <script src="js/customers.js?v=20.0"></script>
-  <script src="js/reports.js?v=20.0"></script>
+  <script src="js/app.js?v=21.0"></script>
+  <script src="js/costumes.js?v=21.0"></script>
+  <script src="js/rentals.js?v=21.0"></script>
+  <script src="js/customers.js?v=21.0"></script>
+  <script src="js/reports.js?v=21.0"></script>
 </body>
 </html>

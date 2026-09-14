@@ -119,12 +119,14 @@ router.post('/', verifyToken, async (req, res) => {
     const is_paid = req.body.is_paid === true || req.body.is_paid === 'true';
     const orderCode = 'HDT-' + Math.floor(100000 + Math.random() * 900000);
 
+    const orderStatus = req.body.status === 'DRAFT' ? 'DRAFT' : 'RENTED';
+
     // Tạo đơn hàng
     const orderRes = await client.query(
       `INSERT INTO rental_orders (
         order_code, customer_name, customer_phone, customer_email, rental_start, rental_end,
         total_amount, deposit_amount, status, notes, created_by, is_paid
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'RENTED', $9, $10, $11) RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
       [
         orderCode,
         customer_name,
@@ -134,6 +136,7 @@ router.post('/', verifyToken, async (req, res) => {
         rental_end || null,
         totalAmount,
         totalDeposit,
+        orderStatus,
         notes || '',
         req.user ? req.user.name : 'System',
         is_paid,

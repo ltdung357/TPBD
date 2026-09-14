@@ -87,8 +87,9 @@ function renderRentalsTable(orders) {
   // Render Mobile Cards View
   if (cardsContainer) {
     cardsContainer.innerHTML = orders.map(order => {
+      const isDraft = order.status === 'DRAFT';
       const isReturned = order.status === 'RETURNED';
-      const borderClass = isReturned ? 'rental-card-returned' : 'rental-card-unreturned';
+      const borderClass = isDraft ? 'rental-card-draft' : (isReturned ? 'rental-card-returned' : 'rental-card-unreturned');
 
       return `
         <div class="rental-card-mobile ${borderClass}" onclick="openOrderDetailModal(${order.id})" style="cursor: pointer;">
@@ -154,6 +155,8 @@ function getRentalStatusBadge(status) {
   switch (status) {
     case 'RENTED':
       return `<span class="badge badge-info"><i class="fa-solid fa-truck-fast"></i> Đang Thuê</span>`;
+    case 'DRAFT':
+      return `<span class="badge" style="background: #64748b; color: #ffffff;"><i class="fa-solid fa-file-pen"></i> Nháp</span>`;
     case 'RETURNED':
       return `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Đã Trả Đồ</span>`;
     case 'OVERDUE':
@@ -425,6 +428,7 @@ async function createRentalOrder(e) {
   const customer_name = document.getElementById('rental-cust-name').value.trim();
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
   const rental_start = document.getElementById('rental-start-date').value;
+  const status = document.querySelector('input[name="rental_status"]:checked')?.value || 'RENTED';
   const notes = document.getElementById('rental-notes').value.trim();
   const is_paid = document.getElementById('rental-is-paid')?.checked || false;
 
@@ -445,6 +449,7 @@ async function createRentalOrder(e) {
         customer_phone,
         rental_start,
         rental_end: null,
+        status,
         notes,
         is_paid,
         items: selectedRentalItems
@@ -649,6 +654,14 @@ async function openOrderDetailModal(id) {
         </button>
         <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-order-detail'); openUpdateRentalModal(${order.id})">
           <i class="fa-solid fa-calendar-pen"></i> Sửa Ngày Trả
+        </button>
+      `;
+    }
+
+    if (order.status === 'DRAFT') {
+      actionsHTML += `
+        <button class="btn btn-primary btn-sm" onclick="closeModal('modal-order-detail'); updateRentalStatus(${order.id}, 'RENTED')">
+          <i class="fa-solid fa-check-double"></i> Chốt Đơn (Chuyển Sang Đang Thuê)
         </button>
       `;
     }
