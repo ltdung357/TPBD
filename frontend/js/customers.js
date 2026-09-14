@@ -19,7 +19,7 @@ function renderCustomersTable(customers) {
   const cardsContainer = document.getElementById('mobile-customers-cards');
 
   if (!customers || customers.length === 0) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Chưa có dữ liệu khách hàng.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Chưa có dữ liệu khách hàng.</td></tr>`;
     if (cardsContainer) cardsContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 25px; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border);">Chưa có dữ liệu khách hàng.</div>`;
     return;
   }
@@ -30,6 +30,7 @@ function renderCustomersTable(customers) {
         <td>#${c.id}</td>
         <td><strong>${c.name}</strong></td>
         <td>${c.phone}</td>
+        <td>${c.address || '---'}</td>
         <td>${c.email || '---'}</td>
         <td>${c.organization || '---'}</td>
         <td><span class="badge badge-success">${c.total_orders} lần</span></td>
@@ -46,13 +47,20 @@ function renderCustomersTable(customers) {
           <span class="badge badge-success" style="font-size: 11px;"><i class="fa-solid fa-receipt"></i> ${c.total_orders} lần thuê</span>
         </div>
 
-        <!-- Phone, Email, Organization -->
+        <!-- Phone, Address, Email, Organization -->
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; margin-top: 4px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: var(--text-muted); font-size: 12px;">Số điện thoại:</span>
             <a href="tel:${c.phone}" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 4px;">
               <i class="fa-solid fa-phone" style="font-size: 11px;"></i> ${c.phone}
             </a>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted); font-size: 12px;">Địa chỉ:</span>
+            <span style="color: var(--text-heading); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; text-align: right;">
+              <i class="fa-solid fa-location-dot" style="font-size: 11px; color: var(--primary);"></i> ${c.address || 'Chưa cập nhật'}
+            </span>
           </div>
 
           ${c.email ? `

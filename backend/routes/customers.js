@@ -21,7 +21,7 @@ router.get('/', verifyToken, async (req, res) => {
 
     if (search) {
       params.push(`%${search}%`);
-      sql += ` AND (c.name ILIKE $1 OR c.phone ILIKE $1 OR c.email ILIKE $1 OR c.organization ILIKE $1)`;
+      sql += ` AND (c.name ILIKE $1 OR c.phone ILIKE $1 OR c.email ILIKE $1 OR c.organization ILIKE $1 OR c.address ILIKE $1)`;
     }
 
     sql += ` ORDER BY total_orders DESC, c.id DESC`;
