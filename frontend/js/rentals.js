@@ -1609,46 +1609,9 @@ async function getUniqueCustomerRecords() {
 async function handleRentalCustomerInput() {
   const nameVal = (document.getElementById('rental-cust-name')?.value || '').trim();
   const phoneVal = (document.getElementById('rental-cust-phone')?.value || '').trim();
-  const currentEditingId = document.getElementById('rental-editing-draft-id')?.value;
 
   const nameBox = document.getElementById('rental-cust-name-suggestions');
   const phoneBox = document.getElementById('rental-cust-phone-suggestions');
-  const warningBox = document.getElementById('rental-customer-active-warning');
-
-  // Check active/unreturned or draft orders for this phone or customer name
-  if (warningBox) {
-    if ((phoneVal || nameVal) && rentalsList && rentalsList.length > 0) {
-      const phoneLower = phoneVal.toLowerCase();
-      const nameLower = nameVal.toLowerCase();
-
-      const activeOrder = rentalsList.find(o => {
-        if (currentEditingId && String(o.id) === String(currentEditingId)) return false;
-        const matchesPhone = phoneVal && o.customer_phone && o.customer_phone.toLowerCase().includes(phoneLower);
-        const matchesName = nameVal && o.customer_name && o.customer_name.toLowerCase() === nameLower;
-        return (matchesPhone || matchesName) && (o.status === 'RENTED' || o.status === 'DRAFT');
-      });
-
-      if (activeOrder) {
-        warningBox.style.display = 'block';
-        const isDraft = activeOrder.status === 'DRAFT';
-        warningBox.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-            <span>
-              💡 Khách hàng này hiện có 1 đơn <strong>${isDraft ? 'Nháp' : 'Đang thuê chưa trả'}</strong> 
-              (Mã: <strong style="color: var(--primary);">${activeOrder.order_code}</strong> - ${formatVND(activeOrder.total_amount)})!
-            </span>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="openOrderDetailModal(${activeOrder.id})" style="padding: 2px 8px; font-size: 11px; font-weight: 700; white-space: nowrap;">
-              <i class="fa-solid fa-eye"></i> Xem Đơn
-            </button>
-          </div>
-        `;
-      } else {
-        warningBox.style.display = 'none';
-      }
-    } else {
-      warningBox.style.display = 'none';
-    }
-  }
 
   // Render Autocomplete Dropdowns
   const customers = await getUniqueCustomerRecords();
