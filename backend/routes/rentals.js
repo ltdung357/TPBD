@@ -4,7 +4,7 @@ const { getPool } = require('../db');
 const { verifyToken } = require('./auth');
 
 // Helper sync customer order count excluding DRAFT orders
-async function syncCustomerOrderCount(client, phone, name, email) {
+async function syncCustomerOrderCount(client, phone, name, email, address) {
   if (!phone) return;
   const countRes = await client.query(
     `SELECT COUNT(*) as cnt FROM rental_orders WHERE customer_phone = $1 AND status != 'DRAFT'`,
@@ -13,11 +13,13 @@ async function syncCustomerOrderCount(client, phone, name, email) {
   const realOrdersCount = parseInt(countRes.rows[0].cnt || 0, 10);
 
   await client.query(
-    `INSERT INTO customers (name, phone, email, total_orders)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO customers (name, phone, email, address, total_orders)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (phone) DO UPDATE 
-     SET total_orders = $4, name = EXCLUDED.name`,
-    [name || 'Khách Hàng', phone, email || '', realOrdersCount]
+     SET total_orders = $5, 
+         name = EXCLUDED.name, 
+         address = CASE WHEN EXCLUDED.address != '' THEN EXCLUDED.address ELSE customers.address END`,
+    [name || 'Khách Hàng', phone, email || '', address || '', realOrdersCount]
   );
 }
 
@@ -80,6 +82,7 @@ router.post('/', verifyToken, async (req, res) => {
     customer_name,
     customer_phone,
     customer_email,
+    customer_address,
     rental_start,
     rental_end,
     deposit_amount,
@@ -141,14 +144,15 @@ router.post('/', verifyToken, async (req, res) => {
     // Tạo đơn hàng
     const orderRes = await client.query(
       `INSERT INTO rental_orders (
-        order_code, customer_name, customer_phone, customer_email, rental_start, rental_end,
+        order_code, customer_name, customer_phone, customer_email, customer_address, rental_start, rental_end,
         total_amount, deposit_amount, status, notes, created_by, is_paid
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
       [
         orderCode,
         customer_name,
         customer_phone,
         customer_email || '',
+        customer_address || '',
         rental_start,
         rental_end || null,
         totalAmount,
@@ -172,7 +176,7 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     // Tự động đồng bộ danh sách & số lần thuê của Khách hàng (bỏ qua đơn nháp DRAFT)
-    await syncCustomerOrderCount(client, customer_phone, customer_name, customer_email);
+    await syncCustomerOrderCount(client, customer_phone, customer_name, customer_email, customer_address);
 
     await client.query('COMMIT');
     res.status(201).json({ message: 'Tạo đơn thuê trang phục thành công!', order: orderRes.rows[0] });
@@ -251,6 +255,7 @@ router.put('/:id/full', verifyToken, async (req, res) => {
     customer_name,
     customer_phone,
     customer_email,
+    customer_address,
     rental_start,
     rental_end,
     deposit_amount,
@@ -323,13 +328,14 @@ router.put('/:id/full', verifyToken, async (req, res) => {
 
     const orderRes = await client.query(
       `UPDATE rental_orders 
-       SET customer_name = $1, customer_phone = $2, customer_email = $3, rental_start = $4, rental_end = $5,
-           total_amount = $6, deposit_amount = $7, status = $8, notes = $9, is_paid = $10
-       WHERE id = $11 RETURNING *`,
+       SET customer_name = $1, customer_phone = $2, customer_email = $3, customer_address = $4, rental_start = $5, rental_end = $6,
+           total_amount = $7, deposit_amount = $8, status = $9, notes = $10, is_paid = $11
+       WHERE id = $12 RETURNING *`,
       [
         customer_name,
         customer_phone,
         customer_email || '',
+        customer_address || '',
         rental_start,
         rental_end || null,
         totalAmount,
@@ -341,7 +347,7 @@ router.put('/:id/full', verifyToken, async (req, res) => {
       ]
     );
 
-    await syncCustomerOrderCount(client, customer_phone, customer_name, customer_email);
+    await syncCustomerOrderCount(client, customer_phone, customer_name, customer_email, customer_address);
 
     await client.query('COMMIT');
     res.json({ message: 'Cập nhật và tạo đơn thuê thành công!', order: orderRes.rows[0] });
@@ -368,7 +374,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
 
     await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
     await client.query(`DELETE FROM rental_orders WHERE id = $1`, [id]);
-    await syncCustomerOrderCount(client, order.customer_phone, order.customer_name, order.customer_email);
+    await syncCustomerOrderCount(client, order.customer_phone, order.customer_name, order.customer_email, order.customer_address);
 
     await client.query('COMMIT');
     res.json({ message: 'Xóa đơn thành công!' });
@@ -429,7 +435,7 @@ router.put('/:id/status', verifyToken, async (req, res) => {
       await client.query(`UPDATE rental_orders SET status = $1 WHERE id = $2`, [status, id]);
     }
 
-    await syncCustomerOrderCount(client, currentOrder.customer_phone, currentOrder.customer_name, currentOrder.customer_email);
+    await syncCustomerOrderCount(client, currentOrder.customer_phone, currentOrder.customer_name, currentOrder.customer_email, currentOrder.customer_address);
 
     await client.query('COMMIT');
     res.json({ message: `Xác nhận trả đồ thành công!` });

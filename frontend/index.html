@@ -380,6 +380,7 @@
                     <th>ID</th>
                     <th>Khách Hàng</th>
                     <th>Số Điện Thoại</th>
+                    <th>Địa Chỉ</th>
                     <th>Email</th>
                     <th>Tên Đoàn / Doanh Nghiệp</th>
                     <th>Số Lần Thuê Đồ</th>
@@ -590,6 +591,11 @@
           <input type="date" id="rental-start-date" class="form-control" required>
         </div>
 
+        <div class="form-group">
+          <label>Địa Chỉ Khách Hàng</label>
+          <input type="text" id="rental-cust-address" class="form-control" placeholder="Số 123 Đường Trần Phú, Quận Hà Đông, Hà Nội...">
+        </div>
+
 
 
         <!-- Visual Items Picker Container -->
@@ -734,6 +740,10 @@
             <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Khách Hàng</div>
             <strong id="detail-cust-name" style="font-size: 14px; color: var(--text-heading); display: block; margin-top: 2px;">--</strong>
             <a id="detail-cust-phone" href="#" style="font-size: 13px; color: var(--primary); font-weight: 700; text-decoration: none; display: inline-block; margin-top: 2px;">--</a>
+            <div id="detail-cust-address-container" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: flex-start; gap: 4px;">
+              <i class="fa-solid fa-location-dot" style="color: var(--primary); margin-top: 2px; font-size: 11px;"></i>
+              <span id="detail-cust-address">--</span>
+            </div>
           </div>
 
           <div>
@@ -1058,10 +1068,10 @@
   <div id="toast-container"></div>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=29.0"></script>
-  <script src="js/costumes.js?v=29.0"></script>
-  <script src="js/rentals.js?v=29.0"></script>
-  <script src="js/customers.js?v=29.0"></script>
-  <script src="js/reports.js?v=29.0"></script>
+  <script src="js/app.js?v=30.0"></script>
+  <script src="js/costumes.js?v=30.0"></script>
+  <script src="js/rentals.js?v=30.0"></script>
+  <script src="js/customers.js?v=30.0"></script>
+  <script src="js/reports.js?v=30.0"></script>
 </body>
 </html>

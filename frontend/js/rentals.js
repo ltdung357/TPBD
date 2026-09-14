@@ -137,6 +137,14 @@ function renderRentalsTable(orders) {
               <i class="fa-solid fa-phone" style="font-size: 11px;"></i> ${order.customer_phone}
             </a>
           </div>
+          ${order.customer_address ? `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-muted); font-size: 12px;">Địa chỉ:</span>
+              <span style="color: var(--text-heading); font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-location-dot" style="font-size: 10px; color: var(--primary);"></i> ${order.customer_address}
+              </span>
+            </div>
+          ` : ''}
         </div>
 
         <!-- Rental Start / End timeline box -->
@@ -225,10 +233,11 @@ function openCreateRentalModal() {
 function handleCloseRentalModal() {
   const custName = (document.getElementById('rental-cust-name')?.value || '').trim();
   const custPhone = (document.getElementById('rental-cust-phone')?.value || '').trim();
+  const custAddress = (document.getElementById('rental-cust-address')?.value || '').trim();
   const notes = (document.getElementById('rental-notes')?.value || '').trim();
   const hasItems = selectedRentalItems && selectedRentalItems.length > 0;
 
-  if (custName || custPhone || notes || hasItems) {
+  if (custName || custPhone || custAddress || notes || hasItems) {
     openModal('modal-confirm-draft');
   } else {
     forceCloseRentalModal();
@@ -240,6 +249,9 @@ function forceCloseRentalModal() {
   document.getElementById('form-rental').reset();
   if (document.getElementById('rental-editing-draft-id')) {
     document.getElementById('rental-editing-draft-id').value = '';
+  }
+  if (document.getElementById('rental-cust-address')) {
+    document.getElementById('rental-cust-address').value = '';
   }
   const titleEl = document.getElementById('modal-rental-title');
   if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
@@ -264,6 +276,7 @@ async function submitSaveDraftOrder() {
   const draftId = document.getElementById('rental-editing-draft-id')?.value;
   const customer_name = document.getElementById('rental-cust-name').value.trim() || 'Khách Nháp';
   const customer_phone = document.getElementById('rental-cust-phone').value.trim() || '0000000000';
+  const customer_address = (document.getElementById('rental-cust-address')?.value || '').trim();
   const rental_start = document.getElementById('rental-start-date').value || new Date().toISOString().split('T')[0];
   const notes = document.getElementById('rental-notes').value.trim();
 
@@ -285,6 +298,7 @@ async function submitSaveDraftOrder() {
       body: JSON.stringify({
         customer_name,
         customer_phone,
+        customer_address,
         rental_start,
         rental_end: null,
         status: 'DRAFT',
@@ -322,6 +336,9 @@ async function editDraftOrder(id) {
 
     document.getElementById('rental-cust-name').value = order.customer_name || '';
     document.getElementById('rental-cust-phone').value = order.customer_phone || '';
+    if (document.getElementById('rental-cust-address')) {
+      document.getElementById('rental-cust-address').value = order.customer_address || '';
+    }
     document.getElementById('rental-start-date').value = order.rental_start ? order.rental_start.split('T')[0] : new Date().toISOString().split('T')[0];
     document.getElementById('rental-notes').value = order.notes || '';
 
@@ -598,6 +615,7 @@ async function createRentalOrder(e) {
   const draftId = document.getElementById('rental-editing-draft-id')?.value;
   const customer_name = document.getElementById('rental-cust-name').value.trim();
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
+  const customer_address = (document.getElementById('rental-cust-address')?.value || '').trim();
   const rental_start = document.getElementById('rental-start-date').value;
   const notes = document.getElementById('rental-notes').value.trim();
   const is_paid = document.getElementById('rental-is-paid')?.checked || false;
@@ -620,6 +638,7 @@ async function createRentalOrder(e) {
       body: JSON.stringify({
         customer_name,
         customer_phone,
+        customer_address,
         rental_start,
         rental_end: null,
         status: 'RENTED',
@@ -749,6 +768,11 @@ async function openOrderDetailModal(id) {
     document.getElementById('detail-cust-name').innerText = order.customer_name;
     document.getElementById('detail-cust-phone').innerText = order.customer_phone;
     document.getElementById('detail-cust-phone').href = 'tel:' + order.customer_phone;
+
+    const addressEl = document.getElementById('detail-cust-address');
+    if (addressEl) {
+      addressEl.innerText = order.customer_address || 'Chưa cập nhật địa chỉ';
+    }
 
     document.getElementById('detail-rental-start').innerText = formatDate(order.rental_start);
     document.getElementById('detail-rental-end').innerText = order.rental_end ? formatDate(order.rental_end) : 'Chưa hẹn ngày';
@@ -1202,7 +1226,7 @@ async function exportRentalInvoice(id) {
           <!-- Customer Details -->
           <div class="cust-info-section">
             <div>Tên khách hàng: <span class="dotted-line" style="width: 75%;">${order.customer_name}</span></div>
-            <div>Địa chỉ: <span class="dotted-line" style="width: 84%;">${order.customer_organization || ''}</span></div>
+            <div>Địa chỉ: <span class="dotted-line" style="width: 84%;">${order.customer_address || order.customer_organization || ''}</span></div>
             <div>Sđt: <span class="dotted-line" style="width: 86%;">${order.customer_phone}</span></div>
           </div>
 
