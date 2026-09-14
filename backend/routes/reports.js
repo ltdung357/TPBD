@@ -22,11 +22,11 @@ router.get('/dashboard', async (req, res) => {
     // 2. Thống kê đơn thuê
     const rentalsRes = await pool.query(`
       SELECT 
-        COUNT(*) as total_orders,
+        COUNT(CASE WHEN status != 'DRAFT' THEN 1 END) as total_orders,
         SUM(CASE WHEN status = 'RENTED' THEN 1 ELSE 0 END) as active_rentals,
         SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) as completed_rentals,
         SUM(CASE WHEN status = 'OVERDUE' THEN 1 ELSE 0 END) as overdue_rentals,
-        COALESCE(SUM(CASE WHEN is_paid = true THEN total_amount ELSE 0 END), 0) as rental_revenue
+        COALESCE(SUM(CASE WHEN is_paid = true AND status != 'DRAFT' THEN total_amount ELSE 0 END), 0) as rental_revenue
       FROM rental_orders
     `);
 

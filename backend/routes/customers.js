@@ -9,15 +9,22 @@ router.get('/', verifyToken, async (req, res) => {
 
   try {
     const pool = getPool();
-    let sql = `SELECT * FROM customers WHERE 1=1`;
+    let sql = `
+      SELECT c.id, c.name, c.phone, c.email, c.organization, c.address, c.created_at,
+        COALESCE(
+          (SELECT COUNT(*) FROM rental_orders r WHERE r.customer_phone = c.phone AND r.status != 'DRAFT'), 0
+        ) as total_orders
+      FROM customers c
+      WHERE 1=1
+    `;
     const params = [];
 
     if (search) {
       params.push(`%${search}%`);
-      sql += ` AND (name ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1 OR organization ILIKE $1)`;
+      sql += ` AND (c.name ILIKE $1 OR c.phone ILIKE $1 OR c.email ILIKE $1 OR c.organization ILIKE $1)`;
     }
 
-    sql += ` ORDER BY total_orders DESC, id DESC`;
+    sql += ` ORDER BY total_orders DESC, c.id DESC`;
 
     const result = await pool.query(sql, params);
     res.json(result.rows);

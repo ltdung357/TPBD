@@ -3,6 +3,24 @@ const router = express.Router();
 const { getPool } = require('../db');
 const { verifyToken } = require('./auth');
 
+// Helper sync customer order count excluding DRAFT orders
+async function syncCustomerOrderCount(client, phone, name, email) {
+  if (!phone) return;
+  const countRes = await client.query(
+    `SELECT COUNT(*) as cnt FROM rental_orders WHERE customer_phone = $1 AND status != 'DRAFT'`,
+    [phone]
+  );
+  const realOrdersCount = parseInt(countRes.rows[0].cnt || 0, 10);
+
+  await client.query(
+    `INSERT INTO customers (name, phone, email, total_orders)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (phone) DO UPDATE 
+     SET total_orders = $4, name = EXCLUDED.name`,
+    [name || 'Khách Hàng', phone, email || '', realOrdersCount]
+  );
+}
+
 // Lấy danh sách đơn thuê
 router.get('/', async (req, res) => {
   const { status, search } = req.query;
@@ -153,14 +171,8 @@ router.post('/', verifyToken, async (req, res) => {
       );
     }
 
-    // Tự động thêm/cập nhật danh sách Khách hàng
-    await client.query(
-      `INSERT INTO customers (name, phone, email, total_orders)
-       VALUES ($1, $2, $3, 1)
-       ON CONFLICT (phone) DO UPDATE 
-       SET total_orders = customers.total_orders + 1, name = EXCLUDED.name`,
-      [customer_name, customer_phone, customer_email || '']
-    );
+    // Tự động đồng bộ danh sách & số lần thuê của Khách hàng (bỏ qua đơn nháp DRAFT)
+    await syncCustomerOrderCount(client, customer_phone, customer_name, customer_email);
 
     await client.query('COMMIT');
     res.status(201).json({ message: 'Tạo đơn thuê trang phục thành công!', order: orderRes.rows[0] });
@@ -329,6 +341,8 @@ router.put('/:id/full', verifyToken, async (req, res) => {
       ]
     );
 
+    await syncCustomerOrderCount(client, customer_phone, customer_name, customer_email);
+
     await client.query('COMMIT');
     res.json({ message: 'Cập nhật và tạo đơn thuê thành công!', order: orderRes.rows[0] });
   } catch (err) {
@@ -346,11 +360,16 @@ router.delete('/:id', verifyToken, async (req, res) => {
   const client = await getPool().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
-    const delRes = await client.query(`DELETE FROM rental_orders WHERE id = $1 RETURNING *`, [id]);
-    if (delRes.rows.length === 0) {
+    const checkRes = await client.query(`SELECT * FROM rental_orders WHERE id = $1 FOR UPDATE`, [id]);
+    if (checkRes.rows.length === 0) {
       throw new Error('Không tìm thấy đơn thuê để xóa!');
     }
+    const order = checkRes.rows[0];
+
+    await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
+    await client.query(`DELETE FROM rental_orders WHERE id = $1`, [id]);
+    await syncCustomerOrderCount(client, order.customer_phone, order.customer_name, order.customer_email);
+
     await client.query('COMMIT');
     res.json({ message: 'Xóa đơn thành công!' });
   } catch (err) {
@@ -409,6 +428,8 @@ router.put('/:id/status', verifyToken, async (req, res) => {
     } else {
       await client.query(`UPDATE rental_orders SET status = $1 WHERE id = $2`, [status, id]);
     }
+
+    await syncCustomerOrderCount(client, currentOrder.customer_phone, currentOrder.customer_name, currentOrder.customer_email);
 
     await client.query('COMMIT');
     res.json({ message: `Xác nhận trả đồ thành công!` });
