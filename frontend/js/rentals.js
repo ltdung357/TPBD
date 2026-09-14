@@ -142,7 +142,9 @@ function renderRentalsTable(orders) {
             <strong style="font-size: 16px; color: var(--success); font-weight: 900;">${formatVND(order.total_amount)}</strong>
           </div>
           <span style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
-            <i class="fa-solid fa-hand-pointer" style="font-size: 13px;"></i> Bấm để xem
+            ${isDraft 
+              ? `<button type="button" class="btn btn-warning btn-sm" style="padding: 3px 8px; font-size: 11px; font-weight: 700;" onclick="event.stopPropagation(); editDraftOrder(${order.id})"><i class="fa-solid fa-pen-to-square"></i> Sửa nháp</button>` 
+              : `<i class="fa-solid fa-hand-pointer" style="font-size: 13px;"></i> Bấm để xem`}
           </span>
         </div>
       </div>
@@ -178,21 +180,93 @@ function openCreateRentalModal() {
   const form = document.getElementById('form-rental');
   if (form) form.reset();
 
+  const draftIdInput = document.getElementById('rental-editing-draft-id');
+  if (draftIdInput) draftIdInput.value = '';
+
+  const titleEl = document.getElementById('modal-rental-title');
+  if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
+
+  const statusRadios = document.querySelectorAll('input[name="rental_status"]');
+  statusRadios.forEach(r => {
+    r.checked = (r.value === 'RENTED');
+  });
+
   const startInput = document.getElementById('rental-start-date');
   const endInput = document.getElementById('rental-end-date');
   if (startInput) {
     startInput.value = new Date().toISOString().split('T')[0];
   }
   if (endInput) {
-    endInput.value = ''; // Mặc định không bắt buộc ngày trả đồ
+    endInput.value = '';
   }
 
-  // Ensure costumes data is loaded for picker
   if (!costumesList || costumesList.length === 0) {
     if (typeof loadCostumes === 'function') loadCostumes();
   }
 
   openModal('modal-rental');
+}
+
+async function editDraftOrder(id) {
+  try {
+    const res = await fetch(`/api/rentals/${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Lỗi khi tải đơn nháp!');
+
+    const { order, items } = data;
+
+    const draftIdInput = document.getElementById('rental-editing-draft-id');
+    if (draftIdInput) draftIdInput.value = order.id;
+
+    const titleEl = document.getElementById('modal-rental-title');
+    if (titleEl) titleEl.innerText = `Chỉnh Sửa & Tiếp Tục Tạo Đơn (${order.order_code})`;
+
+    document.getElementById('rental-cust-name').value = order.customer_name || '';
+    document.getElementById('rental-cust-phone').value = order.customer_phone || '';
+    document.getElementById('rental-start-date').value = order.rental_start ? order.rental_start.split('T')[0] : new Date().toISOString().split('T')[0];
+    document.getElementById('rental-notes').value = order.notes || '';
+
+    const isPaidCheck = document.getElementById('rental-is-paid');
+    if (isPaidCheck) isPaidCheck.checked = !!order.is_paid;
+
+    const statusRadios = document.querySelectorAll('input[name="rental_status"]');
+    statusRadios.forEach(r => {
+      r.checked = (r.value === 'RENTED');
+    });
+
+    selectedRentalItems = (items || []).map(i => ({
+      costume_id: i.costume_id,
+      qty: parseInt(i.qty || 1, 10)
+    }));
+
+    if (!costumesList || costumesList.length === 0) {
+      if (typeof loadCostumes === 'function') await loadCostumes();
+    }
+
+    renderSelectedRentalItems();
+    openModal('modal-rental');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function deleteDraftOrder(id) {
+  if (!confirm('Bạn có chắc chắn muốn xóa đơn nháp này?')) return;
+  const token = localStorage.getItem('tpbd_token');
+  try {
+    const res = await fetch(`/api/rentals/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Xóa đơn thất bại!');
+
+    showToast(data.message || 'Đã xóa đơn nháp!');
+    loadRentals();
+    if (typeof loadDashboardStats === 'function') loadDashboardStats();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 }
 
 // Render selected items list in #modal-rental
@@ -425,6 +499,7 @@ async function createRentalOrder(e) {
   e.preventDefault();
   const token = localStorage.getItem('tpbd_token');
 
+  const draftId = document.getElementById('rental-editing-draft-id')?.value;
   const customer_name = document.getElementById('rental-cust-name').value.trim();
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
   const rental_start = document.getElementById('rental-start-date').value;
@@ -437,9 +512,12 @@ async function createRentalOrder(e) {
     return;
   }
 
+  const endpoint = draftId ? `/api/rentals/${draftId}/full` : '/api/rentals';
+  const method = draftId ? 'PUT' : 'POST';
+
   try {
-    const res = await fetch('/api/rentals', {
-      method: 'POST',
+    const res = await fetch(endpoint, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
@@ -457,11 +535,17 @@ async function createRentalOrder(e) {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Tạo đơn thuê thất bại!');
+    if (!res.ok) throw new Error(data.message || 'Lỗi khi lưu đơn thuê!');
 
-    showToast('Tạo đơn thuê trang phục thành công!');
+    showToast(draftId ? 'Đã hoàn tất và tạo đơn thuê thành công!' : 'Tạo đơn thuê trang phục thành công!');
     closeModal('modal-rental');
     document.getElementById('form-rental').reset();
+    if (document.getElementById('rental-editing-draft-id')) {
+      document.getElementById('rental-editing-draft-id').value = '';
+    }
+    const titleEl = document.getElementById('modal-rental-title');
+    if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
+
     selectedRentalItems = [];
     renderSelectedRentalItems();
     loadRentals();
@@ -660,8 +744,14 @@ async function openOrderDetailModal(id) {
 
     if (order.status === 'DRAFT') {
       actionsHTML += `
+        <button class="btn btn-warning btn-sm" onclick="closeModal('modal-order-detail'); editDraftOrder(${order.id})">
+          <i class="fa-solid fa-pen-to-square"></i> Sửa & Tiếp Tục Tạo Đơn
+        </button>
         <button class="btn btn-primary btn-sm" onclick="closeModal('modal-order-detail'); updateRentalStatus(${order.id}, 'RENTED')">
           <i class="fa-solid fa-check-double"></i> Chốt Đơn (Chuyển Sang Đang Thuê)
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="closeModal('modal-order-detail'); deleteDraftOrder(${order.id})">
+          <i class="fa-solid fa-trash"></i> Xóa Đơn Nháp
         </button>
       `;
     }

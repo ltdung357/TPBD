@@ -233,6 +233,135 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Cập nhật toàn bộ thông tin đơn thuê / đơn nháp (sửa đơn nháp tiếp tục tạo đơn)
+router.put('/:id/full', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const {
+    customer_name,
+    customer_phone,
+    customer_email,
+    rental_start,
+    rental_end,
+    deposit_amount,
+    status,
+    notes,
+    items,
+  } = req.body;
+
+  if (!customer_name || !customer_phone || !rental_start || !items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin khách hàng, ngày nhận đồ và chọn ít nhất 1 sản phẩm!' });
+  }
+
+  const client = await getPool().connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const checkRes = await client.query(`SELECT * FROM rental_orders WHERE id = $1 FOR UPDATE`, [id]);
+    if (checkRes.rows.length === 0) {
+      throw new Error('Không tìm thấy đơn thuê!');
+    }
+
+    let daysCount = 1;
+    if (rental_end) {
+      const startDate = new Date(rental_start);
+      const endDate = new Date(rental_end);
+      const timeDiff = endDate.getTime() - startDate.getTime();
+      daysCount = Math.max(1, Math.ceil(timeDiff / (1000 * 3600 * 24)));
+    }
+
+    let totalAmount = 0;
+    let totalDeposit = parseFloat(deposit_amount || 0);
+    const itemsToInsert = [];
+
+    for (const item of items) {
+      const costumeRes = await client.query(`SELECT id, name, price_per_day, deposit_fee, available_qty FROM costumes WHERE id = $1 FOR UPDATE`, [item.costume_id]);
+      if (costumeRes.rows.length === 0) {
+        throw new Error(`Sản phẩm mã ID #${item.costume_id} không tồn tại!`);
+      }
+      const costume = costumeRes.rows[0];
+      const qty = parseInt(item.qty || 1, 10);
+
+      const itemTotal = parseFloat(costume.price_per_day) * qty;
+      totalAmount += itemTotal;
+      if (!deposit_amount) {
+        totalDeposit += parseFloat(costume.deposit_fee || 0) * qty;
+      }
+
+      itemsToInsert.push({
+        costume_id: costume.id,
+        qty: qty,
+        price_per_day: parseFloat(costume.price_per_day),
+        days_count: daysCount,
+        item_total: itemTotal,
+      });
+    }
+
+    const is_paid = req.body.is_paid === true || req.body.is_paid === 'true';
+    const orderStatus = status || 'RENTED';
+
+    await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
+
+    for (const item of itemsToInsert) {
+      await client.query(
+        `INSERT INTO rental_items (rental_id, costume_id, qty, price_per_day, days_count, item_total)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [id, item.costume_id, item.qty, item.price_per_day, item.days_count, item.item_total]
+      );
+    }
+
+    const orderRes = await client.query(
+      `UPDATE rental_orders 
+       SET customer_name = $1, customer_phone = $2, customer_email = $3, rental_start = $4, rental_end = $5,
+           total_amount = $6, deposit_amount = $7, status = $8, notes = $9, is_paid = $10
+       WHERE id = $11 RETURNING *`,
+      [
+        customer_name,
+        customer_phone,
+        customer_email || '',
+        rental_start,
+        rental_end || null,
+        totalAmount,
+        totalDeposit,
+        orderStatus,
+        notes || '',
+        is_paid,
+        id
+      ]
+    );
+
+    await client.query('COMMIT');
+    res.json({ message: 'Cập nhật và tạo đơn thuê thành công!', order: orderRes.rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[UPDATE RENTAL FULL ERR]', err.message);
+    res.status(400).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Xóa đơn thuê / đơn nháp
+router.delete('/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
+    const delRes = await client.query(`DELETE FROM rental_orders WHERE id = $1 RETURNING *`, [id]);
+    if (delRes.rows.length === 0) {
+      throw new Error('Không tìm thấy đơn thuê để xóa!');
+    }
+    await client.query('COMMIT');
+    res.json({ message: 'Xóa đơn thành công!' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    res.status(400).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 // Cập nhật trạng thái đơn thuê (Ví dụ: Khách trả đồ -> Cộng lại kho)
 router.put('/:id/status', verifyToken, async (req, res) => {
   const { id } = req.params;
