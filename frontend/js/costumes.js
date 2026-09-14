@@ -812,6 +812,10 @@ function openCostumeModalForCreate() {
   renderCategoryDropdown();
   renderTypeDropdown();
   document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
+
+  // Tự động điền mã sản phẩm mới ngay khi mở form
+  generateAutoCostumeCode(false);
+
   openModal('modal-costume');
 }
 
@@ -963,9 +967,14 @@ async function saveCostume(e) {
     }
   });
 
+  let costumeCode = document.getElementById('costume-code').value.trim();
+  if (!costumeCode) {
+    costumeCode = generateAutoCostumeCode(false);
+  }
+
   const costumeData = {
     name: document.getElementById('costume-name').value.trim(),
-    code: document.getElementById('costume-code').value.trim(),
+    code: costumeCode,
     category_id: parseInt(document.getElementById('costume-category').value, 10),
     type: document.getElementById('costume-type').value,
     size: document.getElementById('costume-size').value,
@@ -1223,7 +1232,7 @@ function editCostumeFromSuggestion(id) {
   showToast('Đã chuyển sang chỉnh sửa mẫu trang phục sẵn có!', 'info');
 }
 
-function generateAutoCostumeCode() {
+function generateAutoCostumeCode(showToastMsg = false) {
   let nextNum = 1001;
   if (costumesList && costumesList.length > 0) {
     const existingNums = costumesList.map(c => {
@@ -1239,8 +1248,11 @@ function generateAutoCostumeCode() {
   if (codeInput) {
     codeInput.value = newCode;
     handleCostumeCodeInput(codeInput);
+  }
+  if (showToastMsg) {
     showToast(`Đã tự động tạo mã sản phẩm: ${newCode}`, 'success');
   }
+  return newCode;
 }
 
 document.addEventListener('click', function(e) {
