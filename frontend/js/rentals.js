@@ -219,34 +219,38 @@ function renderSelectedRentalItems() {
     const subtotal = parseFloat(item.price_per_day || 0) * itemState.qty;
 
     return `
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px;">
-        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
-          <img src="${coverImg}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: var(--surface, #ffffff); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+        <!-- Top: Cover Image + Product Name & Size/Code -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="${coverImg}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0;">
           <div style="flex: 1; min-width: 0;">
-            <strong style="font-size: 13px; color: var(--text-heading); display: block; line-height: 1.3; word-break: break-word;" title="${item.name}">${item.name}</strong>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <strong style="font-size: 14px; color: var(--text-heading); display: block; line-height: 1.35; font-weight: 700;">${item.name}</strong>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
               <span>Mã: <code style="font-weight: 700; color: var(--primary);">${item.code}</code></span>
               ${item.size ? `<span>• Size: <b style="color: var(--text-heading);">${item.size}</b></span>` : ''}
             </div>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-          <div style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border); border-radius: 8px; padding: 2px 4px;">
-            <button type="button" class="btn btn-sm" style="padding: 2px 8px; font-weight: 800; cursor: pointer;" onclick="adjustRentalItemQty(${item.id}, -1)">-</button>
+        <!-- Bottom: Quantity controls + Subtotal + Delete button -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--border); margin-top: 2px;">
+          <div style="display: flex; align-items: center; background: rgba(0, 0, 0, 0.04); border: 1px solid var(--border); border-radius: 8px; padding: 2px 4px;">
+            <button type="button" class="btn btn-sm" style="padding: 2px 10px; font-weight: 800; cursor: pointer; color: #ef4444;" onclick="adjustRentalItemQty(${item.id}, -1)">-</button>
             <input type="number" value="${itemState.qty}" min="1" 
               onchange="setRentalItemQty(${item.id}, this.value)" 
-              style="width: 36px; text-align: center; border: none; background: transparent; color: var(--text-heading); font-weight: 800; font-size: 13px;">
-            <button type="button" class="btn btn-sm" style="padding: 2px 8px; font-weight: 800; cursor: pointer;" onclick="adjustRentalItemQty(${item.id}, 1)">+</button>
+              style="width: 38px; text-align: center; border: none; background: transparent; color: var(--text-heading); font-weight: 800; font-size: 13px;">
+            <button type="button" class="btn btn-sm" style="padding: 2px 10px; font-weight: 800; cursor: pointer; color: #10b981;" onclick="adjustRentalItemQty(${item.id}, 1)">+</button>
           </div>
 
-          <div style="font-weight: 800; font-size: 14px; color: var(--success); text-align: right; white-space: nowrap;">
-            ${formatVND(subtotal)}
-          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <strong style="font-size: 15px; color: var(--success); font-weight: 800;">
+              ${formatVND(subtotal)}
+            </strong>
 
-          <button type="button" class="btn btn-sm" style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 6px 10px; cursor: pointer;" onclick="removeRentalItemById(${item.id})" title="Xóa món này">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
+            <button type="button" class="btn btn-sm" style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 6px 10px; cursor: pointer;" onclick="removeRentalItemById(${item.id})" title="Xóa món này">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;

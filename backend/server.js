@@ -63,14 +63,9 @@ const initDatabase = async () => {
     await client.end();
   }
 
-  // 2. Kết nối tới DB `tpbd_db`
-  const pool = new Pool({
-    user: pgUser,
-    host: pgHost,
-    database: dbName,
-    password: pgPassword,
-    port: pgPort,
-  });
+  // 2. Kết nối tới DB bằng getPool()
+  const { getPool } = require('./db');
+  const pool = getPool();
 
   // 3. Tạo các Bảng dữ liệu
   try {
