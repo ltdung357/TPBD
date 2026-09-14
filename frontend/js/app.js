@@ -5,7 +5,74 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
   setupRouting();
+  setupMobileNavScroll();
 });
+
+// Smart Hide / Show Mobile Bottom Nav on Scroll & Touch Swipe
+function setupMobileNavScroll() {
+  let lastScrollY = window.scrollY || document.documentElement.scrollTop;
+  let touchStartY = 0;
+  let ticking = false;
+
+  const getNav = () => document.querySelector('.mobile-bottom-nav');
+
+  // 1. Window Scroll Event
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const nav = getNav();
+        if (nav) {
+          const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+          const scrollDelta = currentScrollY - lastScrollY;
+
+          // Always show menu near top of page
+          if (currentScrollY < 50) {
+            nav.classList.remove('nav-hidden');
+          } 
+          // Vuốt lên / Cuộn xuống -> Ẩn menu dưới
+          else if (scrollDelta > 8 && currentScrollY > 70) {
+            nav.classList.add('nav-hidden');
+          } 
+          // Vuốt xuống / Cuộn lên -> Hiện menu dưới
+          else if (scrollDelta < -8) {
+            nav.classList.remove('nav-hidden');
+          }
+
+          lastScrollY = Math.max(0, currentScrollY);
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // 2. Direct Touch Gesture Listener
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!touchStartY || !e.touches || e.touches.length === 0) return;
+    const nav = getNav();
+    if (!nav) return;
+
+    const currentTouchY = e.touches[0].clientY;
+    const touchDelta = touchStartY - currentTouchY; // Finger UP = Vuốt lên (content down)
+    const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+
+    if (currentScrollY > 50) {
+      if (touchDelta > 15) {
+        // Vuốt lên -> Ẩn menu dưới
+        nav.classList.add('nav-hidden');
+      } else if (touchDelta < -15) {
+        // Vuốt xuống -> Hiện menu dưới
+        nav.classList.remove('nav-hidden');
+      }
+    }
+  }, { passive: true });
+}
 
 // Toast notification helper
 function showToast(msg, type = 'success') {
