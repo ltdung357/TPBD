@@ -116,10 +116,9 @@ router.post('/', verifyToken, async (req, res) => {
       });
     }
 
-    const is_paid = req.body.is_paid === true || req.body.is_paid === 'true';
-    const orderCode = 'HDT-' + Math.floor(100000 + Math.random() * 900000);
-
     const orderStatus = req.body.status === 'DRAFT' ? 'DRAFT' : 'RENTED';
+    const is_paid = orderStatus === 'DRAFT' ? false : (req.body.is_paid === true || req.body.is_paid === 'true');
+    const orderCode = 'HDT-' + Math.floor(100000 + Math.random() * 900000);
 
     // Tạo đơn hàng
     const orderRes = await client.query(
@@ -297,8 +296,8 @@ router.put('/:id/full', verifyToken, async (req, res) => {
       });
     }
 
-    const is_paid = req.body.is_paid === true || req.body.is_paid === 'true';
     const orderStatus = status || 'RENTED';
+    const is_paid = orderStatus === 'DRAFT' ? false : (req.body.is_paid === true || req.body.is_paid === 'true');
 
     await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
 

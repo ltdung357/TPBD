@@ -191,6 +191,8 @@ function openCreateRentalModal() {
     r.checked = (r.value === 'RENTED');
   });
 
+  onRentalStatusChange();
+
   const startInput = document.getElementById('rental-start-date');
   const endInput = document.getElementById('rental-end-date');
   if (startInput) {
@@ -205,6 +207,31 @@ function openCreateRentalModal() {
   }
 
   openModal('modal-rental');
+}
+
+function onRentalStatusChange() {
+  const status = document.querySelector('input[name="rental_status"]:checked')?.value || 'RENTED';
+  const container = document.getElementById('rental-is-paid-container');
+  const checkbox = document.getElementById('rental-is-paid');
+
+  if (status === 'DRAFT') {
+    if (checkbox) {
+      checkbox.checked = false;
+      checkbox.disabled = true;
+    }
+    if (container) {
+      container.style.opacity = '0.4';
+      container.style.pointerEvents = 'none';
+    }
+  } else {
+    if (checkbox) {
+      checkbox.disabled = false;
+    }
+    if (container) {
+      container.style.opacity = '1';
+      container.style.pointerEvents = 'auto';
+    }
+  }
 }
 
 async function editDraftOrder(id) {
@@ -233,6 +260,8 @@ async function editDraftOrder(id) {
     statusRadios.forEach(r => {
       r.checked = (r.value === 'RENTED');
     });
+
+    onRentalStatusChange();
 
     selectedRentalItems = (items || []).map(i => ({
       costume_id: i.costume_id,
@@ -723,7 +752,7 @@ async function openOrderDetailModal(id) {
       </button>
     `;
 
-    if (!order.is_paid) {
+    if (!order.is_paid && order.status !== 'DRAFT') {
       actionsHTML += `
         <button class="btn btn-primary btn-sm" onclick="closeModal('modal-order-detail'); updateRentalPayment(${order.id}, true)">
           <i class="fa-solid fa-hand-holding-dollar"></i> Xác Nhận Đã Trả Tiền
