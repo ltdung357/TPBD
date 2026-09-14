@@ -84,11 +84,7 @@ function renderRentalsTable(orders) {
           </div>
         </td>
         <td style="text-align: center; color: var(--text-muted); font-size: 12px;">
-          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-            <button type="button" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); editRentalOrder(${order.id})" title="Sửa đơn này">
-              <i class="fa-solid fa-pen-to-square"></i> Sửa
-            </button>
-          </div>
+          <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>Bấm để xem
         </td>
       </tr>
     `;
@@ -114,9 +110,6 @@ function renderRentalsTable(orders) {
             <strong style="font-size: 15px; color: var(--primary); font-weight: 800;">${order.order_code}</strong>
           </div>
           <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-            <button type="button" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); editRentalOrder(${order.id})" title="Sửa đơn này">
-              <i class="fa-solid fa-pen-to-square"></i> Sửa
-            </button>
             ${getRentalStatusBadge(order.status)}
             ${isDraft ? `<button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); deleteDraftOrder(${order.id})" title="Xóa đơn nháp này"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
             ${!isDraft ? (order.is_paid 
