@@ -1043,6 +1043,97 @@ function docSoThanhChu(number) {
   return result.charAt(0).toUpperCase() + result.slice(1) + ' đồng.';
 }
 
+// Modal popup preview for generated PNG Invoice (Mobile & Desktop friendly)
+function openInvoiceImageModal(imgData, orderCode) {
+  let modal = document.getElementById('modal-invoice-image-preview');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-invoice-image-preview';
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '100000';
+    modal.innerHTML = `
+      <div class="modal-box glass-card" style="max-width: 700px; width: 95%; max-height: 92vh; padding: 16px; display: flex; flex-direction: column; gap: 12px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 0; display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-heading); margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-file-image" style="color: var(--success);"></i>
+              <span id="modal-invoice-img-title">Hóa Đơn Dạng Ảnh (PNG)</span>
+            </h3>
+            <small style="font-size: 12px; color: #3b82f6; display: block; margin-top: 4px; font-weight: 700;">
+              💡 Chạm & giữ vào ảnh 1 giây để Lưu ảnh hoặc Copy gửi ngay cho khách!
+            </small>
+          </div>
+          <button class="modal-close" onclick="closeModal('modal-invoice-image-preview')">&times;</button>
+        </div>
+
+        <div style="flex: 1; overflow-y: auto; text-align: center; background: #1e293b; border-radius: 10px; padding: 12px; border: 1px dashed var(--border);">
+          <img id="img-invoice-preview-src" src="" alt="Hóa đơn trang phục Thúy Hà" style="max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: inline-block;">
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--border);">
+          <button type="button" id="btn-download-invoice-png" class="btn btn-success btn-sm" style="font-weight: 700;">
+            <i class="fa-solid fa-download"></i> Tải Ảnh Về Máy
+          </button>
+          <button type="button" id="btn-share-invoice-png" class="btn btn-primary btn-sm" style="font-weight: 700;">
+            <i class="fa-solid fa-share-nodes"></i> Chia Sẻ qua Zalo/FB
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('modal-invoice-image-preview')">
+            Đóng
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const imgEl = modal.querySelector('#img-invoice-preview-src');
+  if (imgEl) imgEl.src = imgData;
+
+  const titleEl = modal.querySelector('#modal-invoice-img-title');
+  if (titleEl) {
+    titleEl.innerText = `Hóa Đơn Dạng Ảnh - ${orderCode || ''}`;
+  }
+
+  const downloadBtn = modal.querySelector('#btn-download-invoice-png');
+  if (downloadBtn) {
+    downloadBtn.onclick = function() {
+      const a = document.createElement('a');
+      a.href = imgData;
+      a.download = `HoaDon_${orderCode || 'TPBD'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Đã tải file ảnh hóa đơn về máy!', 'success');
+    };
+  }
+
+  const shareBtn = modal.querySelector('#btn-share-invoice-png');
+  if (shareBtn) {
+    shareBtn.onclick = async function() {
+      try {
+        const fetchRes = await fetch(imgData);
+        const blob = await fetchRes.blob();
+        const file = new File([blob], `HoaDon_${orderCode || 'TPBD'}.png`, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: `Hóa Đơn Thuê Trang Phục - ${orderCode}`,
+            files: [file]
+          });
+        } else {
+          showToast('💡 Bấm giữ vào hình ảnh 1 giây -> Chọn "Copy" hoặc "Lưu ảnh" để gửi qua Zalo!', 'info');
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showToast('💡 Bấm giữ vào ảnh 1 giây để Copy/Lưu gửi khách!', 'info');
+        }
+      }
+    };
+  }
+
+  openModal('modal-invoice-image-preview');
+}
+
 // Export Rental Invoice matching Hoa_Don_Ban_Hang_Le.XLS template 100% (Supports PDF & PNG Image)
 async function exportRentalInvoice(id, mode = 'PREVIEW') {
   try {
@@ -1091,7 +1182,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
       ? `https://img.vietqr.io/image/BIDV-5130268161-compact2.png?amount=${totalAmountNum}&addInfo=${encodeURIComponent(order.order_code)}&accountName=MAI%20DIEU%20THUY` 
       : 'qr_bank.png';
 
-    // Direct Image Download Mode
+    // Direct Image View & Download Mode
     if (mode === 'IMAGE' && typeof html2canvas !== 'undefined') {
       showToast('Đang tạo file ảnh hóa đơn...', 'info');
 
@@ -1100,24 +1191,24 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
       tempContainer.innerHTML = `
         <div class="invoice-box" style="max-width: 760px; margin: 0 auto; background: #fff; padding: 20px;">
           <div style="width: 100%; margin-bottom: 20px;">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
               <tr>
-                <td style="width: 34%; text-align: center; vertical-align: top;">
-                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 14pt; font-weight: bold;">TRANG PHỤC BIỂU DIỄN</div>
-                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 28pt; font-weight: bold; margin-top: 4px;">THÚY HÀ</div>
+                <td style="width: 38%; text-align: center; vertical-align: top; padding-right: 4px;">
+                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 13pt; font-weight: bold; white-space: nowrap;">TRANG PHỤC BIỂU DIỄN</div>
+                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 26pt; font-weight: bold; margin-top: 2px; letter-spacing: 0.5px; white-space: nowrap;">THÚY HÀ</div>
                 </td>
-                <td style="width: 46%; font-size: 11.5pt; font-weight: bold; line-height: 1.5; vertical-align: top; padding-left: 10px;">
-                  <div>Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
-                  <div>SĐT: 0394378999 - 0962384661</div>
-                  <div>FB: Ha Minh - Mai Diệu Thúy</div>
-                  <div>STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
+                <td style="width: 46%; font-size: 10.5pt; font-weight: bold; line-height: 1.55; vertical-align: top; padding-left: 4px;">
+                  <div style="white-space: nowrap;">Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
+                  <div style="white-space: nowrap;">SĐT: 0394378999 - 0962384661</div>
+                  <div style="white-space: nowrap;">FB: Ha Minh - Mai Diệu Thúy</div>
+                  <div style="white-space: nowrap;">STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
                 </td>
-                <td style="width: 20%; text-align: right; vertical-align: top; padding-left: 10px;">
+                <td style="width: 16%; text-align: right; vertical-align: top; padding-left: 4px;">
                   <img src="${qrCodeUrl}" 
                        onerror="this.onerror=null; this.src='qr_bank.png';" 
-                       style="width: 115px; height: 115px; border-radius: 8px; border: 1px solid #ccc; object-fit: contain;" 
+                       style="width: 105px; height: 105px; border-radius: 6px; border: 1px solid #ccc; object-fit: contain;" 
                        alt="Mã QR Chuyển Tiền">
-                  <div style="font-size: 8.5pt; font-weight: bold; text-align: center; color: #333; margin-top: 2px;">Quét QR Chuyển Tiền</div>
+                  <div style="font-size: 8pt; font-weight: bold; text-align: center; color: #333; margin-top: 2px; white-space: nowrap;">Quét QR Chuyển Tiền</div>
                 </td>
               </tr>
             </table>
@@ -1174,14 +1265,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
       tempContainer.remove();
 
       const imgData = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = imgData;
-      a.download = `HoaDon_${order.order_code}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      showToast('Đã tải thành công file ảnh hóa đơn!', 'success');
+      openInvoiceImageModal(imgData, order.order_code);
       return;
     }
 
@@ -1220,32 +1304,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
           .store-header table {
             width: 100%;
             border-collapse: collapse;
-          }
-          .brand-col {
-            width: 42%;
-            text-align: center;
-            vertical-align: top;
-          }
-          .brand-title-sm {
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 15pt;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-          }
-          .brand-title-lg {
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 32pt;
-            font-weight: bold;
-            margin-top: 6px;
-            letter-spacing: 1px;
-          }
-          .info-col {
-            width: 58%;
-            font-size: 12.5pt;
-            font-weight: bold;
-            line-height: 1.6;
-            vertical-align: top;
-            padding-left: 20px;
+            table-layout: fixed;
           }
 
           .cust-info-section {
@@ -1338,7 +1397,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
         <div class="no-print-bar" style="background: #1e293b; color: #fff; padding: 12px; text-align: center; font-family: sans-serif; font-size: 14px; position: sticky; top: 0; z-index: 9999; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
           <span><strong>Mẫu Hóa Đơn TPBD Thúy Hà (Chuẩn 100% Excel)</strong></span>
           <button id="btn-download-img" onclick="downloadInvoiceImage()" style="background: #22c55e; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
-            🖼️ Tải File Ảnh (.PNG)
+            🖼️ Tải / Xem File Ảnh (.PNG)
           </button>
           <button onclick="window.print()" style="background: #3b82f6; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
             🖨️ In / Tải File PDF
@@ -1351,24 +1410,24 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
         <div class="invoice-box">
           <!-- Header Store Info -->
           <div class="store-header">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
               <tr>
-                <td class="brand-col" style="width: 34%; text-align: center; vertical-align: top;">
-                  <div class="brand-title-sm">TRANG PHỤC BIỂU DIỄN</div>
-                  <div class="brand-title-lg">THÚY HÀ</div>
+                <td style="width: 38%; text-align: center; vertical-align: top; padding-right: 4px;">
+                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 13pt; font-weight: bold; white-space: nowrap;">TRANG PHỤC BIỂU DIỄN</div>
+                  <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 26pt; font-weight: bold; margin-top: 2px; letter-spacing: 0.5px; white-space: nowrap;">THÚY HÀ</div>
                 </td>
-                <td class="info-col" style="width: 46%; font-size: 11.5pt; font-weight: bold; line-height: 1.5; vertical-align: top; padding-left: 10px;">
-                  <div>Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
-                  <div>SĐT: 0394378999 - 0962384661</div>
-                  <div>FB: Ha Minh - Mai Diệu Thúy</div>
-                  <div>STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
+                <td style="width: 46%; font-size: 10.5pt; font-weight: bold; line-height: 1.55; vertical-align: top; padding-left: 4px;">
+                  <div style="white-space: nowrap;">Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
+                  <div style="white-space: nowrap;">SĐT: 0394378999 - 0962384661</div>
+                  <div style="white-space: nowrap;">FB: Ha Minh - Mai Diệu Thúy</div>
+                  <div style="white-space: nowrap;">STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
                 </td>
-                <td style="width: 20%; text-align: right; vertical-align: top; padding-left: 10px;">
+                <td style="width: 16%; text-align: right; vertical-align: top; padding-left: 4px;">
                   <img src="${qrCodeUrl}" 
                        onerror="this.onerror=null; this.src='qr_bank.png';" 
-                       style="width: 115px; height: 115px; border-radius: 8px; border: 1px solid #ccc; object-fit: contain;" 
+                       style="width: 105px; height: 105px; border-radius: 6px; border: 1px solid #ccc; object-fit: contain;" 
                        alt="Mã QR Chuyển Tiền">
-                  <div style="font-size: 8.5pt; font-weight: bold; text-align: center; color: #333; margin-top: 2px;">Quét QR Chuyển Tiền</div>
+                  <div style="font-size: 8pt; font-weight: bold; text-align: center; color: #333; margin-top: 2px; white-space: nowrap;">Quét QR Chuyển Tiền</div>
                 </td>
               </tr>
             </table>
@@ -1433,12 +1492,16 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
               });
 
               const imgData = canvas.toDataURL('image/png');
-              const a = document.createElement('a');
-              a.href = imgData;
-              a.download = 'HoaDon_${order.order_code}.png';
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
+              if (window.parent && typeof window.parent.openInvoiceImageModal === 'function') {
+                window.parent.openInvoiceImageModal(imgData, '${order.order_code}');
+              } else {
+                const a = document.createElement('a');
+                a.href = imgData;
+                a.download = 'HoaDon_${order.order_code}.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              }
             } catch(e) {
               alert('Lỗi tạo ảnh: ' + e.message);
             } finally {
