@@ -865,14 +865,17 @@ async function openOrderDetailModal(id) {
     }).join('');
 
     // Actions Footer
+    const isMobile = window.innerWidth <= 768;
     const footer = document.getElementById('detail-actions-footer');
     let actionsHTML = `
       <button class="btn btn-primary btn-sm" style="background: #2563eb; border-color: #2563eb;" onclick="exportRentalInvoice(${order.id}, 'IMAGE')">
         <i class="fa-solid fa-file-image"></i> Xuất File Ảnh (PNG)
       </button>
-      <button class="btn btn-outline btn-sm" onclick="exportRentalInvoice(${order.id}, 'PDF')">
-        <i class="fa-solid fa-file-pdf"></i> In / Xuất PDF
-      </button>
+      ${!isMobile ? `
+        <button class="btn btn-outline btn-sm" onclick="exportRentalInvoice(${order.id}, 'PDF')">
+          <i class="fa-solid fa-file-pdf"></i> In / Xuất PDF
+        </button>
+      ` : ''}
     `;
 
     if (!order.is_paid && order.status !== 'DRAFT') {
@@ -1373,6 +1376,9 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
             font-size: 14pt;
           }
 
+          @media (max-width: 768px) {
+            .btn-pdf-print { display: none !important; }
+          }
           @media print {
             .no-print-bar { display: none !important; }
             #print-invoice-frame-overlay,
@@ -1399,7 +1405,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
           <button id="btn-download-img" onclick="downloadInvoiceImage()" style="background: #22c55e; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
             🖼️ Tải / Xem File Ảnh (.PNG)
           </button>
-          <button onclick="window.print()" style="background: #3b82f6; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+          <button class="btn-pdf-print" onclick="window.print()" style="background: #3b82f6; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
             🖨️ In / Tải File PDF
           </button>
           <button onclick="closeInvoice()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
