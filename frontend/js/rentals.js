@@ -200,13 +200,6 @@ function openCreateRentalModal() {
   const titleEl = document.getElementById('modal-rental-title');
   if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
 
-  const statusRadios = document.querySelectorAll('input[name="rental_status"]');
-  statusRadios.forEach(r => {
-    r.checked = (r.value === 'RENTED');
-  });
-
-  onRentalStatusChange();
-
   const startInput = document.getElementById('rental-start-date');
   const endInput = document.getElementById('rental-end-date');
   if (startInput) {
@@ -223,28 +216,87 @@ function openCreateRentalModal() {
   openModal('modal-rental');
 }
 
-function onRentalStatusChange() {
-  const status = document.querySelector('input[name="rental_status"]:checked')?.value || 'RENTED';
-  const container = document.getElementById('rental-is-paid-container');
-  const checkbox = document.getElementById('rental-is-paid');
+function handleCloseRentalModal() {
+  const custName = (document.getElementById('rental-cust-name')?.value || '').trim();
+  const custPhone = (document.getElementById('rental-cust-phone')?.value || '').trim();
+  const notes = (document.getElementById('rental-notes')?.value || '').trim();
+  const hasItems = selectedRentalItems && selectedRentalItems.length > 0;
 
-  if (status === 'DRAFT') {
-    if (checkbox) {
-      checkbox.checked = false;
-      checkbox.disabled = true;
-    }
-    if (container) {
-      container.style.opacity = '0.4';
-      container.style.pointerEvents = 'none';
-    }
+  if (custName || custPhone || notes || hasItems) {
+    openModal('modal-confirm-draft');
   } else {
-    if (checkbox) {
-      checkbox.disabled = false;
-    }
-    if (container) {
-      container.style.opacity = '1';
-      container.style.pointerEvents = 'auto';
-    }
+    forceCloseRentalModal();
+  }
+}
+
+function forceCloseRentalModal() {
+  closeModal('modal-rental');
+  document.getElementById('form-rental').reset();
+  if (document.getElementById('rental-editing-draft-id')) {
+    document.getElementById('rental-editing-draft-id').value = '';
+  }
+  const titleEl = document.getElementById('modal-rental-title');
+  if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
+
+  selectedRentalItems = [];
+  renderSelectedRentalItems();
+}
+
+async function confirmSaveDraft(shouldSave) {
+  closeModal('modal-confirm-draft');
+
+  if (!shouldSave) {
+    forceCloseRentalModal();
+    return;
+  }
+
+  await submitSaveDraftOrder();
+}
+
+async function submitSaveDraftOrder() {
+  const token = localStorage.getItem('tpbd_token');
+  const draftId = document.getElementById('rental-editing-draft-id')?.value;
+  const customer_name = document.getElementById('rental-cust-name').value.trim() || 'Khách Nháp';
+  const customer_phone = document.getElementById('rental-cust-phone').value.trim() || '0000000000';
+  const rental_start = document.getElementById('rental-start-date').value || new Date().toISOString().split('T')[0];
+  const notes = document.getElementById('rental-notes').value.trim();
+
+  if (!selectedRentalItems || selectedRentalItems.length === 0) {
+    showToast('Vui lòng chọn ít nhất 1 món đồ để lưu bản nháp!', 'error');
+    return;
+  }
+
+  const endpoint = draftId ? `/api/rentals/${draftId}/full` : '/api/rentals';
+  const method = draftId ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(endpoint, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        customer_name,
+        customer_phone,
+        rental_start,
+        rental_end: null,
+        status: 'DRAFT',
+        notes,
+        is_paid: false,
+        items: selectedRentalItems
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Lỗi khi lưu đơn nháp!');
+
+    showToast('Đã lưu đơn dưới dạng Bản Nháp (khung màu xám)!');
+    forceCloseRentalModal();
+    loadRentals();
+    if (typeof loadDashboardStats === 'function') loadDashboardStats();
+  } catch (err) {
+    showToast(err.message, 'error');
   }
 }
 
@@ -269,13 +321,6 @@ async function editDraftOrder(id) {
 
     const isPaidCheck = document.getElementById('rental-is-paid');
     if (isPaidCheck) isPaidCheck.checked = !!order.is_paid;
-
-    const statusRadios = document.querySelectorAll('input[name="rental_status"]');
-    statusRadios.forEach(r => {
-      r.checked = (r.value === 'RENTED');
-    });
-
-    onRentalStatusChange();
 
     selectedRentalItems = (items || []).map(i => ({
       costume_id: i.costume_id,
@@ -546,7 +591,6 @@ async function createRentalOrder(e) {
   const customer_name = document.getElementById('rental-cust-name').value.trim();
   const customer_phone = document.getElementById('rental-cust-phone').value.trim();
   const rental_start = document.getElementById('rental-start-date').value;
-  const status = document.querySelector('input[name="rental_status"]:checked')?.value || 'RENTED';
   const notes = document.getElementById('rental-notes').value.trim();
   const is_paid = document.getElementById('rental-is-paid')?.checked || false;
 
@@ -570,7 +614,7 @@ async function createRentalOrder(e) {
         customer_phone,
         rental_start,
         rental_end: null,
-        status,
+        status: 'RENTED',
         notes,
         is_paid,
         items: selectedRentalItems
@@ -581,16 +625,7 @@ async function createRentalOrder(e) {
     if (!res.ok) throw new Error(data.message || 'Lỗi khi lưu đơn thuê!');
 
     showToast(draftId ? 'Đã hoàn tất và tạo đơn thuê thành công!' : 'Tạo đơn thuê trang phục thành công!');
-    closeModal('modal-rental');
-    document.getElementById('form-rental').reset();
-    if (document.getElementById('rental-editing-draft-id')) {
-      document.getElementById('rental-editing-draft-id').value = '';
-    }
-    const titleEl = document.getElementById('modal-rental-title');
-    if (titleEl) titleEl.innerText = 'Tạo Đơn Thuê Trang Phục & Đạo Cụ';
-
-    selectedRentalItems = [];
-    renderSelectedRentalItems();
+    forceCloseRentalModal();
     loadRentals();
     if (typeof loadDashboardStats === 'function') loadDashboardStats();
   } catch (err) {

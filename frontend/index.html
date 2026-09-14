@@ -570,7 +570,7 @@
     <div class="modal-box glass-panel" style="max-width: 750px;">
       <div class="modal-header">
         <h3 id="modal-rental-title">Tạo Đơn Thuê Trang Phục & Đạo Cụ</h3>
-        <button class="modal-close" onclick="closeModal('modal-rental')">&times;</button>
+        <button class="modal-close" onclick="handleCloseRentalModal()">&times;</button>
       </div>
       <form id="form-rental" onsubmit="createRentalOrder(event)">
         <input type="hidden" id="rental-editing-draft-id">
@@ -590,21 +590,7 @@
           <input type="date" id="rental-start-date" class="form-control" required>
         </div>
 
-        <div class="form-group" style="background: rgba(0, 0, 0, 0.02); padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
-          <label style="font-weight: 700; margin-bottom: 6px; display: block; font-size: 13px; color: var(--text-heading);">
-            Trạng Thái Đơn Hàng *
-          </label>
-          <div style="display: flex; gap: 16px; align-items: center;">
-            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; font-weight: 700; color: var(--primary);">
-              <input type="radio" name="rental_status" value="RENTED" checked style="accent-color: var(--primary); width: 16px; height: 16px;" onchange="onRentalStatusChange()">
-              <i class="fa-solid fa-truck-fast"></i> Đang Thuê (Chính thức)
-            </label>
-            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; font-weight: 700; color: #64748b;">
-              <input type="radio" name="rental_status" value="DRAFT" style="accent-color: #64748b; width: 16px; height: 16px;" onchange="onRentalStatusChange()">
-              <i class="fa-solid fa-file-pen"></i> Lưu Nháp (Khung xám)
-            </label>
-          </div>
-        </div>
+
 
         <!-- Visual Items Picker Container -->
         <div class="form-group">
@@ -635,6 +621,30 @@
           <i class="fa-solid fa-check"></i> Xác Nhận Tạo Đơn Thuê
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Hỏi Lưu Nháp Khi Đóng Form Tạo Đơn -->
+  <div id="modal-confirm-draft" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 420px; text-align: center; padding: 24px;">
+      <div style="font-size: 40px; color: #f59e0b; margin-bottom: 12px;">
+        <i class="fa-solid fa-file-circle-question"></i>
+      </div>
+      <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--text-heading);">Lưu Đơn Thuê Này Thành Bản Nháp?</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
+        Bạn chưa bấm xác nhận tạo đơn. Bạn có muốn lưu thông tin đã nhập thành <b>Bản Nháp</b> (khung màu xám) để làm tiếp sau không?
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-primary" onclick="confirmSaveDraft(true)" style="justify-content: center; font-weight: 700;">
+          <i class="fa-solid fa-floppy-disk"></i> Có, Lưu Bản Nháp
+        </button>
+        <button class="btn btn-outline" onclick="confirmSaveDraft(false)" style="justify-content: center; color: #ef4444; border-color: #ef4444;">
+          <i class="fa-solid fa-trash-can"></i> Không Lưu (Hủy Bỏ)
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-confirm-draft')" style="justify-content: center;">
+          Quay Lại Tiếp Tục Nhập
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1048,10 +1058,10 @@
   <div id="toast-container"></div>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=26.0"></script>
-  <script src="js/costumes.js?v=26.0"></script>
-  <script src="js/rentals.js?v=26.0"></script>
-  <script src="js/customers.js?v=26.0"></script>
-  <script src="js/reports.js?v=26.0"></script>
+  <script src="js/app.js?v=27.0"></script>
+  <script src="js/costumes.js?v=27.0"></script>
+  <script src="js/rentals.js?v=27.0"></script>
+  <script src="js/customers.js?v=27.0"></script>
+  <script src="js/reports.js?v=27.0"></script>
 </body>
 </html>
