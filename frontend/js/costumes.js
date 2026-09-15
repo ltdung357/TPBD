@@ -899,7 +899,7 @@ function renderGalleryThumbnails() {
   const fallbackImg = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=60';
 
   if (currentFormImages.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; font-size: 12px; color: var(--text-muted);">Chưa có ảnh nào. Bấm nút phía trên để chụp hoặc tải ảnh.</div>`;
+    container.innerHTML = `<div style="grid-column: 1/-1; font-size: 12px; color: var(--text-muted);">Chưa có ảnh nào. Bấm nút phía trên để chọn tải ảnh.</div>`;
     return;
   }
 
