@@ -48,11 +48,11 @@ router.get('/dashboard', async (req, res) => {
 
     // 4. Các đơn cần chú ý (Đang thuê)
     const urgentRentals = await pool.query(`
-      SELECT id, order_code, customer_name, customer_phone, rental_end, status, total_amount
+      SELECT id, order_code, customer_name, customer_phone, rental_start, rental_start_time, rental_end, rental_end_time, created_at, status, total_amount
       FROM rental_orders
       WHERE status = 'RENTED'
-      ORDER BY rental_end ASC NULLS LAST
-      LIMIT 5
+      ORDER BY rental_end ASC NULLS LAST, created_at DESC
+      LIMIT 10
     `);
 
     // 5. Lịch biên đạo sắp tới
