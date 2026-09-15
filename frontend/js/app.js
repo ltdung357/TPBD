@@ -84,9 +84,18 @@ function showToast(msg, type = 'success') {
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${msg}`;
+  let iconClass = 'fa-circle-check';
+  if (type === 'error') iconClass = 'fa-circle-xmark';
+  else if (type === 'info') iconClass = 'fa-circle-info';
+  else if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+
+  toast.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${msg}</span>`;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3200);
 }
 
 // Format Currency VNĐ
