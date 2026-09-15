@@ -1596,7 +1596,29 @@ let cachedCustomerList = [];
 async function getUniqueCustomerRecords() {
   const map = new Map();
 
-  // 1. From rentalsList
+  // 1. Primary Source: Fetch /api/customers (Danh sách từ trang Khách Hàng)
+  try {
+    const token = localStorage.getItem('tpbd_token');
+    const res = await fetch('/api/customers', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      (data || []).forEach(c => {
+        const phone = (c.phone || '').trim();
+        const name = (c.name || '').trim();
+        const address = (c.address || '').trim();
+        const email = (c.email || '').trim();
+        const organization = (c.organization || '').trim();
+        if (phone || name) {
+          const key = phone || name.toLowerCase();
+          map.set(key, { name, phone, address, email, organization });
+        }
+      });
+    }
+  } catch(e) {}
+
+  // 2. Secondary Fallback: From rentalsList (các đơn thuê chưa có thông tin ở trang Khách Hàng)
   if (rentalsList && Array.isArray(rentalsList)) {
     rentalsList.forEach(o => {
       const phone = (o.customer_phone || '').trim();
@@ -1613,26 +1635,6 @@ async function getUniqueCustomerRecords() {
       }
     });
   }
-
-  // 2. Fetch /api/customers
-  try {
-    const token = localStorage.getItem('tpbd_token');
-    const res = await fetch('/api/customers', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      (data || []).forEach(c => {
-        const phone = (c.phone || '').trim();
-        const name = (c.name || '').trim();
-        const address = (c.address || '').trim();
-        if (phone || name) {
-          const key = phone || name.toLowerCase();
-          map.set(key, { name, phone, address });
-        }
-      });
-    }
-  } catch(e) {}
 
   cachedCustomerList = Array.from(map.values());
   return cachedCustomerList;

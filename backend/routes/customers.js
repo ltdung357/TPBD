@@ -33,7 +33,22 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// Thêm/Sửa thông tin khách hàng
+// Lấy chi tiết 1 khách hàng
+router.get('/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const result = await pool.query(`SELECT * FROM customers WHERE id = $1`, [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy thông tin khách hàng!' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+// Thêm thông tin khách hàng mới
 router.post('/', verifyToken, async (req, res) => {
   const { name, phone, email, organization, address } = req.body;
 
@@ -53,6 +68,49 @@ router.post('/', verifyToken, async (req, res) => {
     );
 
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+// Cập nhật thông tin khách hàng theo ID
+router.put('/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, phone, email, organization, address } = req.body;
+
+  if (!name || !phone) {
+    return res.status(400).json({ message: 'Vui lòng nhập Tên và Số điện thoại khách hàng!' });
+  }
+
+  try {
+    const pool = getPool();
+    const result = await pool.query(
+      `UPDATE customers
+       SET name = $1, phone = $2, email = $3, organization = $4, address = $5
+       WHERE id = $6 RETURNING *`,
+      [name, phone, email || '', organization || '', address || '', id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy khách hàng cần sửa!' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+// Xóa khách hàng theo ID
+router.delete('/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const result = await pool.query(`DELETE FROM customers WHERE id = $1 RETURNING *`, [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy khách hàng cần xóa!' });
+    }
+    res.json({ message: 'Đã xóa khách hàng thành công!' });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
   }

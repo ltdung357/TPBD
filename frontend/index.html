@@ -368,9 +368,17 @@
 
         <!-- 4. CUSTOMERS SECTION -->
         <section id="section-customers" class="page-section">
-
-
           <div class="glass-panel" style="padding: 20px;">
+            <!-- Top Action Bar: Search & Add Customer -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 200px;">
+                <input type="text" id="search-customers-input" class="form-control" placeholder="🔍 Tìm theo Tên, SĐT, Địa chỉ, Đoàn..." oninput="loadCustomers(this.value)">
+              </div>
+              <button class="btn btn-primary" onclick="openCreateCustomerModal()" style="font-weight: 700; white-space: nowrap;">
+                <i class="fa-solid fa-user-plus"></i> + Thêm Khách Hàng
+              </button>
+            </div>
+
             <div class="table-responsive desktop-only-table">
               <table class="data-table">
                 <thead>
@@ -381,7 +389,8 @@
                     <th>Địa Chỉ</th>
                     <th>Email</th>
                     <th>Tên Đoàn / Doanh Nghiệp</th>
-                    <th>Số Lần Thuê Đồ</th>
+                    <th>Số Lần Thuê</th>
+                    <th style="text-align: center;">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody id="tbl-customers-list">
@@ -660,7 +669,41 @@
         <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-confirm-draft')" style="justify-content: center;">
           Quay Lại Tiếp Tục Nhập
         </button>
+  </div>
+
+  <!-- Modal Thêm / Chỉnh Sửa Khách Hàng -->
+  <div id="modal-customer" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="modal-customer-title">Thêm Khách Hàng Mới</h3>
+        <button class="modal-close" onclick="closeModal('modal-customer')">&times;</button>
       </div>
+      <form id="form-customer" onsubmit="saveCustomer(event)">
+        <input type="hidden" id="cust-editing-id">
+        <div class="form-group">
+          <label>Tên Khách Hàng *</label>
+          <input type="text" id="cust-name" class="form-control" placeholder="Nguyễn Văn A" required>
+        </div>
+        <div class="form-group">
+          <label>Số Điện Thoại *</label>
+          <input type="tel" id="cust-phone" class="form-control" placeholder="0987654321" required>
+        </div>
+        <div class="form-group">
+          <label>Địa Chỉ Khách Hàng *</label>
+          <input type="text" id="cust-address" class="form-control" placeholder="Số 123 Đường Trần Phú, Khối Quyết Thắng..." required>
+        </div>
+        <div class="form-group">
+          <label>Tên Đoàn Múa / Doanh Nghiệp / Đơn Vị</label>
+          <input type="text" id="cust-organization" class="form-control" placeholder="Đoàn Nghệ Thuật Tỉnh...">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="cust-email" class="form-control" placeholder="khachhang@gmail.com">
+        </div>
+        <button type="submit" id="btn-submit-customer" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 12px; font-weight: 700;">
+          <i class="fa-solid fa-check"></i> Lưu Thông Tin Khách Hàng
+        </button>
+      </form>
     </div>
   </div>
 
@@ -1092,8 +1135,8 @@
   <!-- Script Imports -->
   <script src="js/app.js?v=47.0"></script>
   <script src="js/costumes.js?v=47.0"></script>
-  <script src="js/rentals.js?v=53.0"></script>
-  <script src="js/customers.js?v=47.0"></script>
+  <script src="js/rentals.js?v=54.0"></script>
+  <script src="js/customers.js?v=54.0"></script>
   <script src="js/reports.js?v=47.0"></script>
 </body>
 </html>
