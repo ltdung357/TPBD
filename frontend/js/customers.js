@@ -9,7 +9,6 @@ async function loadCustomers(searchQuery = '') {
       headers: { Authorization: `Bearer ${token}` }
     });
     customersList = await res.json();
-
     renderCustomersTable(customersList);
   } catch (err) {
     showToast('Lỗi khi tải danh sách khách hàng: ' + err.message, 'error');
@@ -21,14 +20,15 @@ function renderCustomersTable(customers) {
   const cardsContainer = document.getElementById('mobile-customers-cards');
 
   if (!customers || customers.length === 0) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">Chưa có dữ liệu khách hàng.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Chưa có dữ liệu khách hàng.</td></tr>`;
     if (cardsContainer) cardsContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 25px; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border);">Chưa có dữ liệu khách hàng.</div>`;
     return;
   }
 
+  // Desktop table — bấm dòng để xem chi tiết
   if (tbody) {
     tbody.innerHTML = customers.map(c => `
-      <tr>
+      <tr onclick="openCustomerDetailModal(${c.id})" style="cursor: pointer;">
         <td>#${c.id}</td>
         <td><strong>${c.name}</strong></td>
         <td>${c.phone}</td>
@@ -36,35 +36,18 @@ function renderCustomersTable(customers) {
         <td>${c.email || '---'}</td>
         <td>${c.organization || '---'}</td>
         <td><span class="badge badge-success">${c.total_orders} lần</span></td>
-        <td style="text-align: center;">
-          <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-            <button type="button" class="btn btn-sm btn-outline" onclick="openEditCustomerModal(${c.id})" style="padding: 2px 8px; font-size: 11px;" title="Sửa thông tin khách hàng">
-              <i class="fa-solid fa-pen-to-square"></i> Sửa
-            </button>
-            <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="deleteCustomer(${c.id}, '${(c.name || '').replace(/'/g, "\\'")}')" title="Xóa khách hàng này">
-              <i class="fa-solid fa-trash-can"></i> Xóa
-            </button>
-          </div>
-        </td>
       </tr>
     `).join('');
   }
 
+  // Mobile cards — bấm card để xem chi tiết
   if (cardsContainer) {
     cardsContainer.innerHTML = customers.map(c => `
-      <div class="rental-card-mobile" style="border: 1px solid var(--border);" onclick="openEditCustomerModal(${c.id})">
-        <!-- Top: Customer Name & Rental Count Badge & Actions -->
+      <div class="rental-card-mobile" style="border: 1px solid var(--border); cursor: pointer;" onclick="openCustomerDetailModal(${c.id})">
+        <!-- Top: Customer Name & Rental Count Badge -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
           <strong style="font-size: 15px; color: var(--text-heading); font-weight: 800;">${c.name}</strong>
-          <div style="display: flex; gap: 6px; align-items: center;">
-            <span class="badge badge-success" style="font-size: 11px;"><i class="fa-solid fa-receipt"></i> ${c.total_orders} lần</span>
-            <button type="button" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); openEditCustomerModal(${c.id})" title="Sửa khách hàng">
-              <i class="fa-solid fa-pen-to-square"></i> Sửa
-            </button>
-            <button type="button" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); deleteCustomer(${c.id}, '${(c.name || '').replace(/'/g, "\\'")}')" title="Xóa khách hàng">
-              <i class="fa-solid fa-trash-can"></i> Xóa
-            </button>
-          </div>
+          <span class="badge badge-success" style="font-size: 11px;"><i class="fa-solid fa-receipt"></i> ${c.total_orders} lần thuê</span>
         </div>
 
         <!-- Phone, Address, Email, Organization -->
@@ -89,17 +72,56 @@ function renderCustomersTable(customers) {
               <strong style="color: var(--text-heading); font-size: 12px;">${c.organization}</strong>
             </div>
           ` : ''}
+        </div>
 
-          ${c.email ? `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: var(--text-muted); font-size: 12px;">Email:</span>
-              <span style="color: var(--text-heading); font-size: 12px;">${c.email}</span>
-            </div>
-          ` : ''}
+        <div style="margin-top: 10px; text-align: right; font-size: 11px; color: var(--text-muted);">
+          <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>Bấm để xem chi tiết
         </div>
       </div>
     `).join('');
   }
+}
+
+function openCustomerDetailModal(id) {
+  const c = (customersList || []).find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById('detail-cust-detail-name').innerText = c.name;
+
+  const phoneEl = document.getElementById('detail-cust-detail-phone');
+  phoneEl.innerText = c.phone;
+  phoneEl.href = `tel:${c.phone}`;
+
+  document.getElementById('detail-cust-detail-address').innerText = c.address || 'Chưa cập nhật';
+
+  const orgRow = document.getElementById('detail-cust-detail-org-row');
+  const orgEl = document.getElementById('detail-cust-detail-org');
+  if (c.organization) {
+    orgRow.style.display = 'flex';
+    orgEl.innerText = c.organization;
+  } else {
+    orgRow.style.display = 'none';
+  }
+
+  const emailRow = document.getElementById('detail-cust-detail-email-row');
+  const emailEl = document.getElementById('detail-cust-detail-email');
+  if (c.email) {
+    emailRow.style.display = 'flex';
+    emailEl.innerText = c.email;
+  } else {
+    emailRow.style.display = 'none';
+  }
+
+  document.getElementById('detail-cust-detail-orders').innerText = `${c.total_orders} lần`;
+
+  // Set button actions
+  const editBtn = document.getElementById('btn-detail-cust-edit');
+  if (editBtn) editBtn.onclick = () => { closeModal('modal-customer-detail'); openEditCustomerModal(id); };
+
+  const deleteBtn = document.getElementById('btn-detail-cust-delete');
+  if (deleteBtn) deleteBtn.onclick = () => { closeModal('modal-customer-detail'); deleteCustomer(id, c.name); };
+
+  openModal('modal-customer-detail');
 }
 
 function openCreateCustomerModal() {

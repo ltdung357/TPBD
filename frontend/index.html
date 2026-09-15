@@ -390,7 +390,6 @@
                     <th>Email</th>
                     <th>Tên Đoàn / Doanh Nghiệp</th>
                     <th>Số Lần Thuê</th>
-                    <th style="text-align: center;">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody id="tbl-customers-list">
@@ -706,6 +705,51 @@
           <i class="fa-solid fa-check"></i> Lưu Thông Tin Khách Hàng
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Chi Tiết Khách Hàng -->
+  <div id="modal-customer-detail" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 480px;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Khách Hàng</div>
+          <h3 id="detail-cust-detail-name" style="font-size: 18px; font-weight: 800; color: var(--text-heading); margin: 0;"></h3>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="btn btn-sm btn-warning" id="btn-detail-cust-edit" onclick="" style="font-weight: 700; padding: 4px 10px;">
+            <i class="fa-solid fa-pen-to-square"></i> Sửa
+          </button>
+          <button class="modal-close" onclick="closeModal('modal-customer-detail')">&times;</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border);">
+          <span style="color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-phone" style="width: 16px;"></i> Số điện thoại</span>
+          <a id="detail-cust-detail-phone" href="#" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 14px;"></a>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border);">
+          <span style="color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-location-dot" style="width: 16px;"></i> Địa chỉ</span>
+          <span id="detail-cust-detail-address" style="color: var(--text-heading); font-size: 13px; font-weight: 600; text-align: right; max-width: 60%;"></span>
+        </div>
+        <div id="detail-cust-detail-org-row" style="display: none; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border);">
+          <span style="color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-building" style="width: 16px;"></i> Đoàn / Đơn vị</span>
+          <strong id="detail-cust-detail-org" style="color: var(--text-heading); font-size: 13px; text-align: right; max-width: 60%;"></strong>
+        </div>
+        <div id="detail-cust-detail-email-row" style="display: none; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border);">
+          <span style="color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-envelope" style="width: 16px;"></i> Email</span>
+          <span id="detail-cust-detail-email" style="color: var(--text-heading); font-size: 13px; text-align: right;"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(34,197,94,0.08); border-radius: 10px; border: 1px solid rgba(34,197,94,0.25);">
+          <span style="color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-receipt" style="width: 16px;"></i> Số lần thuê đồ</span>
+          <span id="detail-cust-detail-orders" style="color: var(--success); font-weight: 800; font-size: 15px;"></span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 18px;">
+        <button type="button" id="btn-detail-cust-delete" onclick="" class="btn btn-sm" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.35); font-weight: 700; flex: 1; justify-content: center;">
+          <i class="fa-solid fa-trash-can"></i> Xóa Khách Hàng Này
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1138,7 +1182,7 @@
   <script src="js/app.js?v=47.0"></script>
   <script src="js/costumes.js?v=47.0"></script>
   <script src="js/rentals.js?v=54.0"></script>
-  <script src="js/customers.js?v=54.0"></script>
+  <script src="js/customers.js?v=55.0"></script>
   <script src="js/reports.js?v=47.0"></script>
 </body>
 </html>
