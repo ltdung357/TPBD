@@ -1092,9 +1092,6 @@ function openInvoiceImageModal(imgData, orderCode) {
               <i class="fa-solid fa-file-image" style="color: var(--success);"></i>
               <span id="modal-invoice-img-title">Hóa Đơn Dạng Ảnh (PNG)</span>
             </h3>
-            <small style="font-size: 12px; color: #3b82f6; display: block; margin-top: 4px; font-weight: 700;">
-              💡 Chạm & giữ vào ảnh 1 giây để Lưu ảnh hoặc Copy gửi ngay cho khách!
-            </small>
           </div>
           <button class="modal-close" onclick="closeModal('modal-invoice-image-preview')">&times;</button>
         </div>
@@ -1154,11 +1151,11 @@ function openInvoiceImageModal(imgData, orderCode) {
             files: [file]
           });
         } else {
-          showToast('💡 Bấm giữ vào hình ảnh 1 giây -> Chọn "Copy" hoặc "Lưu ảnh" để gửi qua Zalo!', 'info');
+          showToast('Trình duyệt không hỗ trợ chia sẻ trực tiếp. Vui lòng Tải Ảnh Về Máy!', 'warning');
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
-          showToast('💡 Bấm giữ vào ảnh 1 giây để Copy/Lưu gửi khách!', 'info');
+          showToast('Không thể chia sẻ ảnh!', 'error');
         }
       }
     };
