@@ -262,6 +262,7 @@ function logout() {
 function navigateTo(sectionId) {
   // Tự động đóng tất cả các modal đang mở (như modal xem chi tiết) khi chuyển trang
   document.querySelectorAll('.modal-overlay.active').forEach(modal => modal.classList.remove('active'));
+  document.body.classList.remove('modal-open');
 
   // Guard admin pages if guest
   if (!currentUser && ['dashboard', 'rentals', 'customers'].includes(sectionId)) {
@@ -313,12 +314,21 @@ function setupRouting() {
 // Modal Toggle Helpers
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
+  }
 }
 
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+  const anyActive = document.querySelectorAll('.modal-overlay.active').length > 0;
+  if (!anyActive) {
+    document.body.classList.remove('modal-open');
+  }
 }
 
 // Global Search Handler

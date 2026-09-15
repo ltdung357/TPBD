@@ -569,19 +569,27 @@ body {
   color: var(--primary);
 }
 
+/* Body scroll lock when modal active */
+body.modal-open {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
 /* Modals (Light Mode) */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000 !important;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
+  touch-action: none;
 }
 
 .modal-overlay.active {
@@ -590,8 +598,8 @@ body {
 }
 
 .modal-overlay.sub-modal {
-  z-index: 2000;
-  background: rgba(15, 23, 42, 0.6);
+  z-index: 20000 !important;
+  background: rgba(15, 23, 42, 0.75);
 }
 
 .modal-box {
@@ -599,6 +607,8 @@ body {
   max-width: 650px;
   max-height: 90vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 28px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -606,6 +616,8 @@ body {
   box-shadow: var(--shadow-lg);
   transform: scale(0.95);
   transition: transform 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .modal-overlay.active .modal-box {
@@ -795,7 +807,7 @@ body {
   background: #ffffff !important;
   border-top: 1px solid rgba(226, 232, 240, 0.95) !important;
   box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.12) !important;
-  z-index: 999999 !important;
+  z-index: 9000 !important;
   justify-content: space-around !important;
   align-items: center !important;
   padding: 0 4px !important;
