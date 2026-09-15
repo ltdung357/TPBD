@@ -462,7 +462,6 @@ function renderSelectedRentalItems() {
             <strong style="font-size: 14px; color: var(--text-heading); display: block; line-height: 1.35; font-weight: 700;">${item.name}</strong>
             <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
               <span>Mã: <code style="font-weight: 700; color: var(--primary);">${item.code}</code></span>
-              ${item.size ? `<span>• Size: <b style="color: var(--text-heading);">${item.size}</b></span>` : ''}
             </div>
           </div>
         </div>
@@ -620,7 +619,6 @@ function renderVisualCostumePicker() {
           <span class="badge ${item.available_qty > 0 ? 'badge-success' : 'badge-danger'}" style="position: absolute; top: 6px; right: 6px; font-size: 10px; padding: 3px 6px;">
             Kho: ${item.available_qty}
           </span>
-          ${item.size ? `<span class="badge badge-info" style="position: absolute; bottom: 6px; left: 6px; font-size: 10px; padding: 3px 6px;">Size: ${item.size}</span>` : ''}
         </div>
 
         <div style="flex: 1; margin-bottom: 8px;">
@@ -887,7 +885,7 @@ async function openOrderDetailModal(id) {
             <div style="min-width: 0;">
               <strong style="font-size: 13px; color: var(--text-heading); display: block;">${item.costume_name}</strong>
               <small style="font-size: 11px; color: var(--text-muted);">
-                Mã: <code>${item.costume_code}</code> ${item.size ? `| Size: <b>${item.size}</b>` : ''}
+                Mã: <code>${item.costume_code}</code>
               </small>
             </div>
           </div>
@@ -1191,7 +1189,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
         rowsHTML += `
           <tr>
             <td style="text-align: center;">${i + 1}</td>
-            <td style="text-align: left; font-weight: bold;">${item.costume_name} ${item.size ? `(Size: ${item.size})` : ''}</td>
+            <td style="text-align: left; font-weight: bold;">${item.costume_name}</td>
             <td style="text-align: center;">${item.qty}</td>
             <td style="text-align: right;">${formatVND(item.price_per_day).replace(' đ', '')}</td>
             <td style="text-align: right; font-weight: bold;">${formatVND(item.item_total).replace(' đ', '')}</td>
