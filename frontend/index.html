@@ -475,6 +475,12 @@
         <h3 id="modal-costume-title">Thêm Mẫu Trang Phục / Đạo Cụ Mới</h3>
         <button class="modal-close" onclick="closeModal('modal-costume')">&times;</button>
       </div>
+      <div id="costume-draft-notice" style="display: none; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--primary); justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-weight: 600;"><i class="fa-solid fa-floppy-disk"></i> <b>Bản Nháp Tự Động:</b> Đã khôi phục thông tin mẫu trang phục nhập dở trước đó!</span>
+        <button type="button" class="btn btn-sm" onclick="clearCostumeDraftAndReset()" style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.35); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">
+          <i class="fa-solid fa-trash-can"></i> Xóa Nháp & Nhập Mới
+        </button>
+      </div>
       <form id="form-costume" onsubmit="saveCostume(event)">
         <input type="hidden" id="costume-id">
         <div class="form-row">
@@ -1176,7 +1182,7 @@
 
   <!-- Script Imports -->
   <script src="js/app.js?v=47.0"></script>
-  <script src="js/costumes.js?v=48.0"></script>
+  <script src="js/costumes.js?v=49.0"></script>
   <script src="js/rentals.js?v=56.0"></script>
   <script src="js/customers.js?v=55.0"></script>
   <script src="js/reports.js?v=47.0"></script>

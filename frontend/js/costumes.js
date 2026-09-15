@@ -643,6 +643,10 @@ function calculateTotalCostumeQty() {
   if (qtyHidden) {
     qtyHidden.value = total || 1;
   }
+
+  if (typeof saveCostumeFormDraft === 'function') {
+    saveCostumeFormDraft();
+  }
 }
 
 function formatCostumeSizeDisplay(item) {
@@ -807,14 +811,142 @@ function openCostumeDetail(id) {
   openModal('modal-costume-detail');
 }
 
-function openCostumeModalForCreate() {
+// ====== COSTUME CREATION DRAFT AUTO-SAVE & RESTORE ======
+
+function saveCostumeFormDraft() {
+  const editingId = document.getElementById('costume-id')?.value;
+  if (editingId) return; // Không lưu nháp khi đang sửa mẫu có sẵn
+
+  const name = (document.getElementById('costume-name')?.value || '').trim();
+  const code = (document.getElementById('costume-code')?.value || '').trim();
+  const category_id = document.getElementById('costume-category')?.value || '';
+  const type = document.getElementById('costume-type')?.value || '';
+  const price = (document.getElementById('costume-price')?.value || '').trim();
+  const desc = (document.getElementById('costume-desc')?.value || '').trim();
+
+  const container = document.getElementById('costume-size-rows-container');
+  const sizeRows = container ? container.querySelectorAll('.costume-size-row') : [];
+  const sizes = [];
+  sizeRows.forEach(row => {
+    const sSelect = row.querySelector('.costume-size-select');
+    const qInput = row.querySelector('.costume-size-qty-input');
+    if (sSelect && qInput) {
+      sizes.push({
+        size: sSelect.value.trim(),
+        qty: parseInt(qInput.value, 10) || 1
+      });
+    }
+  });
+
+  const hasContent = name !== '' || 
+                     price !== '' || 
+                     desc !== '' || 
+                     (currentFormImages && currentFormImages.length > 0) ||
+                     (sizes.length > 0 && (sizes[0].size !== 'FREE' || sizes[0].qty > 1 || sizes.length > 1));
+
+  if (hasContent) {
+    const draft = {
+      name,
+      code,
+      category_id,
+      type,
+      price,
+      desc,
+      sizes,
+      images: currentFormImages || [],
+      coverImage: currentCoverImage || '',
+      updatedAt: Date.now()
+    };
+    localStorage.setItem('tpbd_costume_create_draft', JSON.stringify(draft));
+  } else {
+    localStorage.removeItem('tpbd_costume_create_draft');
+  }
+}
+
+function restoreCostumeFormDraft() {
+  const raw = localStorage.getItem('tpbd_costume_create_draft');
+  if (!raw) return false;
+
+  try {
+    const draft = JSON.parse(raw);
+    if (!draft || typeof draft !== 'object') return false;
+
+    const hasContent = (draft.name && draft.name.trim()) ||
+                       (draft.price && draft.price.trim()) ||
+                       (draft.desc && draft.desc.trim()) ||
+                       (Array.isArray(draft.images) && draft.images.length > 0) ||
+                       (Array.isArray(draft.sizes) && draft.sizes.length > 0);
+
+    if (!hasContent) return false;
+
+    renderCategoryDropdown(draft.category_id);
+    renderTypeDropdown(draft.type);
+
+    document.getElementById('costume-id').value = '';
+    if (document.getElementById('costume-name')) document.getElementById('costume-name').value = draft.name || '';
+    if (document.getElementById('costume-code') && draft.code) document.getElementById('costume-code').value = draft.code;
+    if (document.getElementById('costume-price')) document.getElementById('costume-price').value = draft.price || '';
+    if (document.getElementById('costume-desc')) document.getElementById('costume-desc').value = draft.desc || '';
+
+    const container = document.getElementById('costume-size-rows-container');
+    if (container) {
+      container.innerHTML = '';
+      if (Array.isArray(draft.sizes) && draft.sizes.length > 0) {
+        draft.sizes.forEach(sq => {
+          addCostumeSizeRow(sq.size, sq.qty || 1);
+        });
+      } else {
+        addCostumeSizeRow('FREE', 1);
+      }
+    }
+
+    if (Array.isArray(draft.images)) {
+      currentFormImages = [...draft.images];
+      currentCoverImage = draft.coverImage || (currentFormImages[0] || '');
+      renderGalleryThumbnails();
+    }
+
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function clearCostumeFormDraft() {
+  localStorage.removeItem('tpbd_costume_create_draft');
+  const noticeBox = document.getElementById('costume-draft-notice');
+  if (noticeBox) noticeBox.style.display = 'none';
+}
+
+function clearCostumeDraftAndReset() {
+  clearCostumeFormDraft();
   resetCostumeForm();
   renderCategoryDropdown();
   renderTypeDropdown();
-  document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
-
-  // Tự động điền mã sản phẩm mới ngay khi mở form
   generateAutoCostumeCode(false);
+  document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
+  showToast('Đã xóa bản nháp!', 'info');
+}
+
+function openCostumeModalForCreate() {
+  const restored = restoreCostumeFormDraft();
+  const noticeBox = document.getElementById('costume-draft-notice');
+
+  if (restored) {
+    document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục (Bản Nháp)';
+    if (noticeBox) noticeBox.style.display = 'flex';
+    showToast('Đã khôi phục thông tin bản nháp mẫu trang phục chưa lưu!', 'info');
+  } else {
+    resetCostumeForm();
+    renderCategoryDropdown();
+    renderTypeDropdown();
+    document.getElementById('modal-costume-title').innerText = 'Thêm Mẫu Trang Phục / Đạo Cụ Mới';
+    generateAutoCostumeCode(false);
+    if (noticeBox) noticeBox.style.display = 'none';
+  }
+
+  const delBtn = document.getElementById('btn-delete-costume');
+  if (delBtn) delBtn.style.display = 'none';
 
   openModal('modal-costume');
 }
@@ -882,6 +1014,7 @@ async function uploadMultipleCostumeImages(event) {
     }
 
     renderGalleryThumbnails();
+    saveCostumeFormDraft();
 
     if (statusText) statusText.innerText = `✅ Đã lưu ${files.length} ảnh thành công!`;
     showToast(`Tải & nén ${files.length} ảnh thành công!`);
@@ -929,6 +1062,7 @@ function renderGalleryThumbnails() {
 function setAsCoverImage(url) {
   currentCoverImage = url;
   renderGalleryThumbnails();
+  saveCostumeFormDraft();
   showToast('Đã chọn làm ảnh đại diện hiển thị chính ngoài web!');
 }
 
@@ -942,6 +1076,7 @@ function removeGalleryImage(index) {
   }
 
   renderGalleryThumbnails();
+  saveCostumeFormDraft();
 }
 
 async function saveCostume(e) {
@@ -1003,6 +1138,7 @@ async function saveCostume(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Lưu sản phẩm thất bại!');
 
+    clearCostumeFormDraft();
     showToast(id ? 'Cập nhật trang phục thành công!' : 'Thêm trang phục mới thành công!');
     closeModal('modal-costume');
     resetCostumeForm();
@@ -1299,5 +1435,20 @@ async function deleteCostumeFromModal() {
   const id = document.getElementById('costume-id').value;
   if (id) {
     await deleteCostume(parseInt(id, 10));
+  }
+}
+
+// Auto-save draft on form input/change
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCostumeDraftListeners);
+} else {
+  initCostumeDraftListeners();
+}
+
+function initCostumeDraftListeners() {
+  const form = document.getElementById('form-costume');
+  if (form) {
+    form.addEventListener('input', saveCostumeFormDraft);
+    form.addEventListener('change', saveCostumeFormDraft);
   }
 }
