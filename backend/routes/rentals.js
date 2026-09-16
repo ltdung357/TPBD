@@ -381,6 +381,16 @@ router.delete('/:id', verifyToken, async (req, res) => {
       throw new Error('Không tìm thấy đơn thuê để xóa!');
     }
     const order = checkRes.rows[0];
+    const itemsRes = await client.query(`SELECT * FROM rental_items WHERE rental_id = $1`, [id]);
+
+    const { logDeletedItem } = require('../recycleBin');
+    await logDeletedItem({
+      itemType: 'RENTAL',
+      itemId: order.id,
+      itemTitle: `Đơn ${order.order_code} - ${order.customer_name}`,
+      itemData: { order, items: itemsRes.rows },
+      deletedBy: req.user ? req.user.name : 'System'
+    });
 
     await client.query(`DELETE FROM rental_items WHERE rental_id = $1`, [id]);
     await client.query(`DELETE FROM rental_orders WHERE id = $1`, [id]);

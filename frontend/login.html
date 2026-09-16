@@ -66,23 +66,6 @@
       line-height: 1.5;
     }
 
-    .login-hero-features {
-      margin-top: 2.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      text-align: left;
-    }
-
-    .login-hero-features .feat {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.95rem;
-      background: rgba(255, 255, 255, 0.12);
-      padding: 10px 18px;
-      border-radius: 12px;
-    }
 
     .auth-section {
       display: flex;
@@ -181,11 +164,7 @@
     <h1>TPBD THÚY HÀ</h1>
     <p>Cửa Hàng Cho Thuê Trang Phục Biểu Diễn & Đạo Cụ Sân Khấu Thúy Hà</p>
 
-    <div class="login-hero-features">
-      <div class="feat"><i class="fa-solid fa-shirt"></i> Trang Phục Múa, Độc Đáo & Đa Dạng</div>
-      <div class="feat"><i class="fa-solid fa-receipt"></i> Tự Động Tính Tiền Thuê, Cọc & Ngày Trả Đồ</div>
-      <div class="feat"><i class="fa-solid fa-boxes-stacked"></i> Quản Lý Tồn Kho Rõ Ràng & Chuẩn Xác</div>
-    </div>
+
   </div>
 
   <!-- Right Auth Form -->
@@ -204,8 +183,8 @@
       <!-- Form Đăng Nhập -->
       <form id="form-login" class="auth-form active" onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label><i class="fa-solid fa-user"></i> Tên Đăng Nhập / Email / SĐT</label>
-          <input type="text" id="login-identifier" class="form-control" placeholder="admin" required>
+          <label><i class="fa-solid fa-user"></i> Tên Đăng Nhập / SĐT</label>
+          <input type="text" id="login-identifier" class="form-control" placeholder="admin hoặc 0901234567" required>
         </div>
 
         <div class="form-group">
@@ -225,18 +204,18 @@
       <!-- Form Đăng Ký -->
       <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
         <div class="form-group">
-          <label><i class="fa-solid fa-user"></i> Họ và Tên</label>
+          <label><i class="fa-solid fa-address-card"></i> Họ và Tên</label>
           <input type="text" id="reg-name" class="form-control" placeholder="Nguyễn Văn A" required>
         </div>
 
         <div class="form-group">
-          <label><i class="fa-solid fa-envelope"></i> Địa chỉ Email</label>
-          <input type="email" id="reg-email" class="form-control" placeholder="user@gmail.com" required>
+          <label><i class="fa-solid fa-user"></i> Tên Đăng Nhập</label>
+          <input type="text" id="reg-username" class="form-control" placeholder="nhanvien01" required>
         </div>
 
         <div class="form-group">
           <label><i class="fa-solid fa-phone"></i> Số điện thoại</label>
-          <input type="tel" id="reg-phone" class="form-control" placeholder="0901234567">
+          <input type="tel" id="reg-phone" class="form-control" placeholder="0901234567" required>
         </div>
 
         <div class="form-group">
@@ -303,7 +282,7 @@
     async function handleRegister(e) {
       e.preventDefault();
       const name = document.getElementById('reg-name').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
+      const username = document.getElementById('reg-username').value.trim();
       const phone = document.getElementById('reg-phone').value.trim();
       const password = document.getElementById('reg-password').value;
 
@@ -311,15 +290,15 @@
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, phone, password })
+          body: JSON.stringify({ name, username, phone, password })
         });
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.message || 'Đăng ký thất bại');
 
-        showToast('Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay.');
+        showToast(data.message || 'Đăng ký thành công! Vui lòng chờ Admin duyệt tài khoản.', 'info');
         switchAuthTab('login');
-        document.getElementById('login-identifier').value = email;
+        document.getElementById('login-identifier').value = username || phone;
       } catch (err) {
         showToast(err.message, 'error');
       }

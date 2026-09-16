@@ -1228,7 +1228,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
                   <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 26pt; font-weight: bold; margin-top: 2px; letter-spacing: 0.5px; white-space: nowrap;">THÚY HÀ</div>
                 </td>
                 <td style="width: 46%; font-size: 10.5pt; font-weight: bold; line-height: 1.55; vertical-align: top; padding-left: 4px;">
-                  <div style="white-space: nowrap;">Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
+                  <div>Địa chỉ: Nhà số 2, Ngõ 13, Đường 19/5, Khối Quyết Thắng, TX. Thái Hòa, Nghệ An</div>
                   <div style="white-space: nowrap;">SĐT: 0394378999 - 0962384661</div>
                   <div style="white-space: nowrap;">FB: Ha Minh - Mai Diệu Thúy</div>
                   <div style="white-space: nowrap;">STK BIDV: 5130268161 (Mai Diệu Thúy)</div>
@@ -1450,7 +1450,7 @@ async function exportRentalInvoice(id, mode = 'PREVIEW') {
                   <div style="font-family: 'Bookman Old Style', Georgia, serif; font-size: 26pt; font-weight: bold; margin-top: 2px; letter-spacing: 0.5px; white-space: nowrap;">THÚY HÀ</div>
                 </td>
                 <td style="width: 46%; font-size: 10.5pt; font-weight: bold; line-height: 1.55; vertical-align: top; padding-left: 4px;">
-                  <div style="white-space: nowrap;">Địa chỉ: Khối Quyết Thắng - TX.Thái Hòa - Nghệ An</div>
+                  <div>Địa chỉ: Nhà số 2, Ngõ 13, Đường 19/5, Khối Quyết Thắng, TX. Thái Hòa, Nghệ An</div>
                   <div style="white-space: nowrap;">SĐT: 0394378999 - 0962384661</div>
                   <div style="white-space: nowrap;">FB: Ha Minh - Mai Diệu Thúy</div>
                   <div style="white-space: nowrap;">STK BIDV: 5130268161 (Mai Diệu Thúy)</div>

@@ -106,6 +106,18 @@ router.delete('/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   try {
     const pool = getPool();
+    const check = await pool.query('SELECT * FROM customers WHERE id = $1', [id]);
+    if (check.rows.length > 0) {
+      const { logDeletedItem } = require('../recycleBin');
+      await logDeletedItem({
+        itemType: 'CUSTOMER',
+        itemId: check.rows[0].id,
+        itemTitle: check.rows[0].name,
+        itemData: check.rows[0],
+        deletedBy: req.user ? req.user.name : 'System'
+      });
+    }
+
     const result = await pool.query(`DELETE FROM customers WHERE id = $1 RETURNING *`, [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy khách hàng cần xóa!' });

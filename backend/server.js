@@ -81,6 +81,8 @@ const initDatabase = async () => {
         is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100);
 
       CREATE TABLE IF NOT EXISTS costume_categories (
         id SERIAL PRIMARY KEY,
@@ -203,6 +205,16 @@ const initDatabase = async () => {
         category_label VARCHAR(100) DEFAULT 'Mặc định',
         is_default BOOLEAN DEFAULT false,
         created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS recycle_bin (
+        id SERIAL PRIMARY KEY,
+        item_type VARCHAR(50) NOT NULL,
+        item_id INTEGER,
+        item_title VARCHAR(255) NOT NULL,
+        item_data JSONB NOT NULL,
+        deleted_by VARCHAR(255),
+        deleted_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
 

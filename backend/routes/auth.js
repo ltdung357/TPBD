@@ -28,13 +28,13 @@ router.post('/login', async (req, res) => {
   const password = String(req.body.password || '');
 
   if (!identifier || !password) {
-    return res.status(400).json({ message: 'Vui lòng nhập email/số điện thoại và mật khẩu!' });
+    return res.status(400).json({ message: 'Vui lòng nhập tên đăng nhập/số điện thoại và mật khẩu!' });
   }
 
   try {
     const pool = getPool();
     const result = await pool.query(
-      `SELECT * FROM users WHERE LOWER(email) = $1 OR phone = $1 LIMIT 1`,
+      `SELECT * FROM users WHERE LOWER(email) = $1 OR phone = $1 OR LOWER(username) = $1 OR LOWER(name) = $1 LIMIT 1`,
       [identifier]
     );
 
@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
     const user = result.rows[0];
 
     if (user.is_active === false) {
-      return res.status(403).json({ message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!' });
+      return res.status(403).json({ message: 'Tài khoản của bạn đang chờ Admin duyệt và phân quyền (hoặc đã bị khóa). Vui lòng liên hệ Admin!' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -54,7 +54,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, name: user.name },
+      { id: user.id, email: user.email, role: user.role, name: user.name, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
     );
@@ -70,23 +70,39 @@ router.post('/login', async (req, res) => {
 // Đăng ký
 router.post('/register', async (req, res) => {
   const name = String(req.body.name || '').trim();
-  const email = String(req.body.email || '').trim().toLowerCase();
+  const username = String(req.body.username || req.body.name || '').trim();
   const phone = String(req.body.phone || '').trim();
+  let email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
   const role = String(req.body.role || 'CUSTOMER').toUpperCase();
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Vui lòng điền đầy đủ Họ tên, Email và Mật khẩu!' });
+  if (!name || !phone || !password) {
+    return res.status(400).json({ message: 'Vui lòng điền đầy đủ Họ và tên, Số điện thoại và Mật khẩu!' });
+  }
+
+  // Nếu không truyền email, tự động tạo email theo SĐT
+  if (!email && phone) {
+    email = `${phone}@tpbd.vn`;
   }
 
   try {
     const pool = getPool();
     const existing = await pool.query(
-      `SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1`,
-      [email]
+      `SELECT id, phone, email, username FROM users 
+       WHERE (phone IS NOT NULL AND phone = $1) 
+          OR (email IS NOT NULL AND LOWER(email) = $2)
+          OR (username IS NOT NULL AND LOWER(username) = $3)
+       LIMIT 1`,
+      [phone, email, username.toLowerCase()]
     );
 
     if (existing.rows.length > 0) {
+      if (existing.rows[0].phone === phone) {
+        return res.status(409).json({ message: 'Số điện thoại này đã được đăng ký tài khoản!' });
+      }
+      if (existing.rows[0].username && existing.rows[0].username.toLowerCase() === username.toLowerCase()) {
+        return res.status(409).json({ message: 'Tên đăng nhập này đã được sử dụng!' });
+      }
       return res.status(409).json({ message: 'Email này đã được sử dụng!' });
     }
 
@@ -94,13 +110,13 @@ router.post('/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, salt);
 
     const insertRes = await pool.query(
-      `INSERT INTO users (name, email, phone, password, role, is_active)
-       VALUES ($1, $2, $3, $4, $5, true) RETURNING id, name, email, phone, role, is_active, created_at`,
-      [name, email, phone || null, hashed, ['ADMIN', 'STAFF', 'CHOREOGRAPHER', 'CUSTOMER'].includes(role) ? role : 'CUSTOMER']
+      `INSERT INTO users (name, username, email, phone, password, role, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, false) RETURNING id, name, username, email, phone, role, is_active, created_at`,
+      [name, username, email, phone || null, hashed, ['ADMIN', 'STAFF', 'CUSTOMER'].includes(role) ? role : 'CUSTOMER']
     );
 
     res.status(201).json({
-      message: 'Đăng ký tài khoản thành công!',
+      message: 'Đăng ký tài khoản thành công! Tài khoản của bạn đang chờ Admin duyệt và phân quyền trước khi có thể đăng nhập.',
       user: insertRes.rows[0],
     });
   } catch (err) {
@@ -154,6 +170,36 @@ router.put('/users/:id', verifyToken, async (req, res) => {
     );
     res.json({ message: 'Cập nhật tài khoản thành công!' });
   } catch (err) {
+    res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
+  }
+});
+
+// Xóa tài khoản người dùng
+router.delete('/users/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  if (parseInt(id, 10) === req.user.id) {
+    return res.status(400).json({ message: 'Bạn không thể tự xóa tài khoản của chính mình!' });
+  }
+
+  try {
+    const pool = getPool();
+    const check = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    if (check.rows.length > 0) {
+      const { logDeletedItem } = require('../recycleBin');
+      await logDeletedItem({
+        itemType: 'USER',
+        itemId: check.rows[0].id,
+        itemTitle: check.rows[0].name,
+        itemData: check.rows[0],
+        deletedBy: req.user ? req.user.name : 'System'
+      });
+    }
+
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    res.json({ message: 'Xóa tài khoản thành công!' });
+  } catch (err) {
+    console.error('[DELETE USER ERR]', err.message);
     res.status(500).json({ message: 'Lỗi máy chủ: ' + err.message });
   }
 });

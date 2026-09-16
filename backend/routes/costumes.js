@@ -434,6 +434,18 @@ router.put('/:id', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const pool = getPool();
+    const check = await pool.query('SELECT * FROM costumes WHERE id = $1', [req.params.id]);
+    if (check.rows.length > 0) {
+      const { logDeletedItem } = require('../recycleBin');
+      await logDeletedItem({
+        itemType: 'COSTUME',
+        itemId: check.rows[0].id,
+        itemTitle: check.rows[0].name,
+        itemData: check.rows[0],
+        deletedBy: req.user ? req.user.name : 'System'
+      });
+    }
+
     await pool.query('DELETE FROM costumes WHERE id = $1', [req.params.id]);
     res.json({ message: 'Xóa trang phục/đạo cụ thành công!' });
   } catch (err) {

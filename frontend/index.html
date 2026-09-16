@@ -181,6 +181,16 @@
             <i class="fa-solid fa-users"></i> Danh Sách Khách Hàng
           </a>
         </li>
+        <li class="admin-only">
+          <a href="javascript:void(0)" class="nav-item" onclick="openUsersManagementModal()">
+            <i class="fa-solid fa-user-gear"></i> Duyệt & Phân Quyền
+          </a>
+        </li>
+        <li class="admin-only">
+          <a href="javascript:void(0)" class="nav-item" onclick="openRecycleBinModal()">
+            <i class="fa-solid fa-trash-arrow-up"></i> Thùng Rác & Khôi Phục
+          </a>
+        </li>
       </ul>
 
       <div class="sidebar-user" id="user-profile-area">
@@ -426,42 +436,76 @@
                 <i class="fa-solid fa-headset" style="color: var(--primary);"></i> Trung Tâm Trợ Giúp & Liên Hệ
               </h3>
               <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--text-body);">
+                <!-- Hotline -->
                 <a href="tel:0962384661" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: inherit; padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border);">
                   <span><i class="fa-solid fa-phone" style="color: var(--success); width: 24px; font-size: 16px;"></i> <strong>Hotline / Zalo:</strong> 0962.384.661</span>
                   <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: var(--text-muted);"></i>
                 </a>
 
-                <div style="padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center;">
-                  <i class="fa-solid fa-location-dot" style="color: var(--danger); width: 24px; font-size: 16px;"></i>
-                  <span><strong>Địa chỉ:</strong> Khối Quyết Thắng, TX. Thái Hòa, Nghệ An</span>
-                </div>
-
+                <!-- Facebook -->
                 <div style="padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center;">
                   <i class="fa-brands fa-facebook" style="color: #1877f2; width: 24px; font-size: 16px;"></i>
                   <span><strong>Facebook:</strong> Ha Minh - Mai Diệu Thúy</span>
                 </div>
 
-                <div style="padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center;">
-                  <i class="fa-solid fa-credit-card" style="color: var(--warning); width: 24px; font-size: 16px;"></i>
-                  <span><strong>BIDV:</strong> 5130268161 (Mai Diệu Thúy)</span>
+                <!-- Tài Khoản Ngân Hàng & QR Code -->
+                <div style="padding: 14px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; text-align: center;">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; color: var(--text-heading);">
+                    <i class="fa-solid fa-qrcode" style="color: var(--warning); font-size: 18px;"></i>
+                    <span>Tài Khoản Ngân Hàng Chuyển Khoản / Đặt Cọc</span>
+                  </div>
+                  <div style="font-size: 13px; color: var(--text-body);">
+                    <strong>BIDV:</strong> <span style="font-weight: 800; color: var(--primary); font-size: 15px;">5130268161</span> (MAI DIỆU THÚY)
+                  </div>
+                  <div style="margin-top: 4px;">
+                    <img src="qr_bank.png" alt="Mã QR Ngân Hàng BIDV" style="width: 100%; max-width: 260px; border-radius: 12px; border: 1.5px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.08); display: block; margin: 0 auto;">
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Quy trình thuê đồ -->
-            <div class="glass-panel" style="padding: 20px; border-radius: 16px;">
-              <h3 style="font-size: 15px; font-weight: 800; color: var(--text-heading); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-circle-info" style="color: var(--info);"></i> Quy Trình Thuê Đồ Sân Khấu
-              </h3>
-              <ul style="font-size: 13px; color: var(--text-muted); padding-left: 20px; margin: 0; line-height: 1.7;">
-                <li>Chọn mẫu trang phục & kiểm tra số lượng theo size trên hệ thống web.</li>
-                <li>Liên hệ Hotline / Zalo <strong>0962.384.661</strong> để chốt lịch thử & lấy đồ.</li>
-                <li>Đặt cọc và nhận trang phục biểu diễn chỉn chu, sạch đẹp.</li>
-              </ul>
+
+              </div>
             </div>
           </div>
         </section>
 
+        <!-- GLOBAL FOOTER WITH GOOGLE MAPS AT THE VERY BOTTOM -->
+        <footer class="app-global-footer" style="margin-top: 12px; padding-top: 12px; border-top: 1.5px dashed var(--border);">
+          <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+            <div class="glass-panel" style="padding: 20px; border-radius: 16px; background: #ffffff; border: 1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                <div>
+                  <h3 style="font-size: 16px; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-map-location-dot" style="color: var(--danger); font-size: 20px;"></i>
+                    <span>Bản Đồ Vị Trí Cửa Hàng - TPBD Thúy Hà</span>
+                  </h3>
+                  <p style="font-size: 13px; color: var(--text-body); margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-location-dot" style="color: var(--danger);"></i>
+                    <strong>Địa chỉ:</strong> Nhà số 2, Ngõ 13, Đường 19/5, Khối Quyết Thắng, TX. Thái Hòa, Nghệ An (Hotline / Zalo: 0962.384.661)
+                  </p>
+                </div>
+                <a href="https://maps.app.goo.gl/VH7zgkGA1s8Nu9jJ8" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+                  <i class="fa-solid fa-location-arrow"></i> Mở Google Maps
+                </a>
+              </div>
+
+              <div style="position: relative; width: 100%; height: 320px; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); background: #f8fafc;">
+                <iframe 
+                  src="https://maps.google.com/maps?q=19.3294236,105.4306742&t=&z=17&ie=UTF8&iwloc=&output=embed" 
+                  width="100%" 
+                  height="100%" 
+                  style="border:0; display: block; width: 100%; height: 100%;" 
+                  allowfullscreen="" 
+                  loading="lazy" 
+                  referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+              </div>
+            </div>
+
+            <div style="text-align: center; font-size: 12px; color: var(--text-muted); padding: 8px 0 20px 0; font-weight: 600;">
+              © 2026 Trang Phục Biểu Diễn Thúy Hà - Cho Thuê Trang Phục & Đạo Cụ Sân Khấu Chuyên Nghiệp
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   </div>
@@ -1004,7 +1048,7 @@
 
       <!-- Horizontal Store Info Footer inside Modal -->
       <div class="store-info-footer-modal" style="margin-top: 18px; padding: 12px 16px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--text-body);">
-        <div>📍 <strong>Địa chỉ:</strong> Khối Quyết Thắng - TX. Thái Hòa - Nghệ An</div>
+        <div>📍 <strong>Địa chỉ:</strong> Nhà số 2, Ngõ 13, Đường 19/5, Khối Quyết Thắng, TX. Thái Hòa, Nghệ An</div>
         <div>📘 <strong>Facebook:</strong> Ha Minh - Mai Diệu Thúy</div>
         <div>💳 <strong>TK Ngân hàng:</strong> BIDV 5130268161 (Chủ TK: Mai Diệu Thúy)</div>
       </div>
@@ -1152,6 +1196,52 @@
   </div>
 
   <!-- Mobile Bottom Navigation Bar -->
+  <!-- Modal Quản Lý & Duyệt Tài Khoản (Admin Only) -->
+  <div id="modal-users-management" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-users-gear" style="color: var(--primary);"></i> Duyệt Tài Khoản & Phân Quyền
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-users-management')">&times;</button>
+      </div>
+
+      <div id="users-cards-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 65vh; overflow-y: auto; padding-right: 4px;">
+        <div style="text-align:center; color: var(--text-muted); padding: 20px;">Đang tải danh sách tài khoản...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Thùng Rác System & Khôi Phục Dữ Liệu (Admin Only) -->
+  <div id="modal-recycle-bin" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 780px;">
+      <div class="modal-header">
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-trash-arrow-up" style="color: #f59e0b;"></i> Thùng Rác System & Khôi Phục Dữ Liệu
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-recycle-bin')">&times;</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+          <button class="rental-filter-chip active" onclick="filterRecycleBin('ALL', this)">Tất Cả</button>
+          <button class="rental-filter-chip" onclick="filterRecycleBin('COSTUME', this)">👕 Trang Phục</button>
+          <button class="rental-filter-chip" onclick="filterRecycleBin('RENTAL', this)">🧾 Đơn Thuê</button>
+          <button class="rental-filter-chip" onclick="filterRecycleBin('CUSTOMER', this)">👥 Khách Hàng</button>
+          <button class="rental-filter-chip" onclick="filterRecycleBin('USER', this)">🔑 Tài Khoản</button>
+        </div>
+
+        <button class="btn btn-sm btn-danger" onclick="purgeAllRecycleBin()" style="font-weight: 700; padding: 6px 12px; font-size: 11px;">
+          <i class="fa-solid fa-fire"></i> Dọn Sạch Thùng Rác
+        </button>
+      </div>
+
+      <div id="recycle-bin-cards-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+        <div style="text-align:center; color: var(--text-muted); padding: 20px;">Đang tải danh sách thùng rác...</div>
+      </div>
+    </div>
+  </div>
+
   <nav class="mobile-bottom-nav">
     <a href="#costumes" class="mobile-nav-item active" onclick="navigateTo('costumes')">
       <i class="fa-solid fa-shirt"></i>
