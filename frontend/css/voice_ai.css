@@ -61,6 +61,8 @@
   color: var(--text-muted, #64748b);
   line-height: 1.5;
   margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Profile Banner */
@@ -82,6 +84,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
 .voice-avatar-icon {
@@ -102,6 +106,8 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  min-width: 0;
+  flex: 1;
 }
 
 .voice-name-row {
@@ -134,6 +140,9 @@
   font-size: 12px;
   color: #64748b;
   line-height: 1.4;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .btn-sample-play {
@@ -693,27 +702,99 @@
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
+  .voice-ai-container {
+    gap: 12px;
+  }
+
   .voice-header-card {
-    padding: 16px;
+    padding: 14px 12px;
   }
+
+  .voice-header-title {
+    font-size: 17px;
+  }
+
+  .voice-header-badge {
+    font-size: 10px;
+    padding: 3px 10px;
+  }
+
   .voice-input-card {
-    padding: 16px;
+    padding: 14px 12px;
   }
+
+  .voice-result-card {
+    padding: 14px 12px;
+  }
+
+  .voice-history-card {
+    padding: 12px;
+  }
+
   .voice-profile-banner {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
   }
+
+  .voice-profile-info {
+    width: 100%;
+  }
+
+  .voice-profile-text {
+    overflow: hidden;
+  }
+
+  .voice-name-row {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .voice-name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .voice-default-tag {
+    flex-shrink: 0;
+  }
+
   .btn-sample-play {
     width: 100%;
     justify-content: center;
   }
+
   .textarea-wrapper textarea {
-    min-height: 120px;
+    min-height: 110px;
+    font-size: 13px;
   }
+
+  .emotion-tags-container {
+    padding: 8px 10px;
+  }
+
+  .emotion-chip {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .voice-options-row {
+    padding: 10px 12px;
+  }
+
+  .btn-primary-voice {
+    font-size: 14px;
+    padding: 12px 18px;
+  }
+
   .result-actions {
     flex-direction: column;
     width: 100%;
   }
+
   .btn-download-mp3, .btn-copy-script {
     width: 100%;
     justify-content: center;
