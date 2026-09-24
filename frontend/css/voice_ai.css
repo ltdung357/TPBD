@@ -1,7 +1,10 @@
 /* ====== AI VOICE STUDIO CSS ====== */
 .voice-ai-container {
+  width: 100%;
   max-width: 780px;
   margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 18px;
