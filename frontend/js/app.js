@@ -590,6 +590,7 @@ async function purgeAllRecycleBin() {
   } catch (err) {
     showToast(err.message, 'error');
   }
+}
 
 // Ép làm mới trang và xóa triệt để bộ nhớ đệm cache trên điện thoại / standalone PWA
 function forceAppUpdate() {
