@@ -324,6 +324,7 @@ const initDatabase = async () => {
 initDatabase();
 
 const systemRouter = require('./routes/system');
+const voiceRouter = require('./routes/voice');
 
 // ====== MOUNT API ROUTERS ======
 app.use('/api/auth', authRouter);
@@ -333,6 +334,7 @@ app.use('/api/choreography', choreoRouter);
 app.use('/api/customers', customerRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/system', systemRouter);
+app.use('/api/voice', voiceRouter);
 
 // Fallback HTML router
 app.get('*', (req, res) => {

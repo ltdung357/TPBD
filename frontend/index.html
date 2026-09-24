@@ -19,6 +19,7 @@
   <title>Trang Phục Biểu Diễn Thúy Hà - Cho Thuê Trang Phục & Đạo Cụ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css?v=8.0">
+  <link rel="stylesheet" href="css/voice_ai.css?v=1.0">
   <style>
     @media (max-width: 1024px) {
       body { padding-bottom: 74px !important; }
@@ -83,11 +84,21 @@
       border-top: 1px solid #e2e8f0 !important;
       box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.15) !important;
       z-index: 999999 !important;
-      justify-content: space-around !important;
+      justify-content: flex-start !important;
       align-items: center !important;
       padding: 0 4px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
       transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
       will-change: transform;
+    }
+    .mobile-bottom-nav::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
     }
 
     .mobile-bottom-nav.nav-hidden {
@@ -103,14 +114,25 @@
       text-decoration: none !important;
       font-size: 11px !important;
       font-weight: 600 !important;
-      flex: 1 !important;
+      flex: 0 0 calc((100vw - 8px) / 5) !important;
+      min-width: 72px !important;
       height: 100% !important;
       border-radius: 8px !important;
       cursor: pointer !important;
+      white-space: nowrap !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
+    .mobile-nav-item i {
+      font-size: 19px !important;
+      transition: transform 0.2s ease !important;
     }
     .mobile-nav-item.active {
       color: #6366f1 !important;
       font-weight: 700 !important;
+    }
+    .mobile-nav-item.active i {
+      transform: translateY(-2px) scale(1.1) !important;
     }
 
     @media (min-width: 1025px) {
@@ -180,6 +202,11 @@
         <li class="admin-only">
           <a href="#customers" class="nav-item" onclick="navigateTo('customers')">
             <i class="fa-solid fa-users"></i> Danh Sách Khách Hàng
+          </a>
+        </li>
+        <li>
+          <a href="#voice-ai" class="nav-item" onclick="navigateTo('voice-ai')">
+            <i class="fa-solid fa-microphone-lines"></i> AI voice (Lê Chức)
           </a>
         </li>
         <li class="admin-only">
@@ -470,6 +497,162 @@
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- 6. AI VOICE SECTION -->
+        <section id="section-voice-ai" class="page-section">
+          <div class="voice-ai-container">
+            <!-- Header Card -->
+            <div class="voice-header-card glass-panel">
+              <div class="voice-header-badge">
+                <i class="fa-solid fa-sparkles"></i> VieNeu-TTS AI Engine 48kHz
+              </div>
+              <h2 class="voice-header-title">
+                <i class="fa-solid fa-microphone-lines"></i> AI Voice Studio
+              </h2>
+              <p class="voice-header-desc">
+                Nhập văn bản tiếng Việt để tự động tạo giọng đọc và thuyết minh kịch bản biểu diễn bằng giọng nói AI truyền cảm.
+              </p>
+              
+              <!-- Fixed Voice Profile Banner -->
+              <div class="voice-profile-banner">
+                <div class="voice-profile-info">
+                  <div class="voice-avatar-icon">
+                    <i class="fa-solid fa-user-tie"></i>
+                  </div>
+                  <div class="voice-profile-text">
+                    <div class="voice-name-row">
+                      <span class="voice-name">NSƯT Lê Chức</span>
+                      <span class="voice-default-tag"><i class="fa-solid fa-check"></i> Giọng mặc định</span>
+                    </div>
+                    <div class="voice-desc-row">
+                      Âm sắc trầm hùng, trang nghiêm, xúc cảm sâu lắng & truyền cảm hứng nghệ thuật
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn-sample-play" id="btn-play-voice-sample" onclick="toggleVoiceSample()">
+                  <i class="fa-solid fa-volume-high"></i> <span>Nghe giọng mẫu</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Text Input Card -->
+            <div class="voice-input-card glass-panel">
+              <div class="input-card-header">
+                <label for="voice-text-input" class="input-label">
+                  <i class="fa-solid fa-pen-nib"></i> Nội Dung Văn Bản Cần Đọc
+                </label>
+                <div class="text-counter">
+                  <span id="voice-char-count">0</span> / 1500 ký tự
+                </div>
+              </div>
+
+              <!-- Quick Emotion Tags -->
+              <div class="emotion-tags-container">
+                <span class="emotion-tags-label"><i class="fa-regular fa-face-smile"></i> Thêm biểu cảm nhanh:</span>
+                <div class="emotion-chips-scroll">
+                  <button type="button" class="emotion-chip" onclick="insertEmotionTag('[cười]')">
+                    😊 [cười]
+                  </button>
+                  <button type="button" class="emotion-chip" onclick="insertEmotionTag('[thở dài]')">
+                    😌 [thở dài]
+                  </button>
+                  <button type="button" class="emotion-chip" onclick="insertEmotionTag('[hắng giọng]')">
+                    🎙️ [hắng giọng]
+                  </button>
+                </div>
+              </div>
+
+              <!-- Textarea -->
+              <div class="textarea-wrapper">
+                <textarea 
+                  id="voice-text-input" 
+                  rows="5" 
+                  placeholder="Nhập nội dung văn bản kịch bản, lời dẫn chương trình, thơ ca hoặc thuyết minh... Ví dụ: Xin nồng nhiệt chào đón quý vị đại biểu và toàn thể khán giả đến với đêm hội văn nghệ tối nay [cười]."
+                  oninput="updateVoiceTextCount()"
+                ></textarea>
+                <button type="button" class="btn-clear-text" id="btn-clear-voice-text" onclick="clearVoiceText()" title="Xóa nội dung" style="display: none;">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <!-- Speed and Options -->
+              <div class="voice-options-row">
+                <div class="speed-slider-group">
+                  <div class="speed-label-row">
+                    <span class="speed-title"><i class="fa-solid fa-gauge-high"></i> Tốc độ đọc:</span>
+                    <span class="speed-val" id="voice-speed-val">1.0x (Bình thường)</span>
+                  </div>
+                  <div class="speed-slider-wrapper">
+                    <span class="speed-min">0.8x</span>
+                    <input type="range" id="voice-speed-slider" min="0.8" max="1.2" step="0.1" value="1.0" oninput="updateVoiceSpeedLabel(this.value)">
+                    <span class="speed-max">1.2x</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Button -->
+              <div class="voice-action-group">
+                <button type="button" id="btn-synthesize-voice" class="btn-primary-voice" onclick="synthesizeSpeech()">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  <span>Tạo Giọng Nói (Đọc Văn Bản)</span>
+                </button>
+              </div>
+
+              <!-- Generating Progress State -->
+              <div id="voice-loading-state" class="voice-loading-panel" style="display: none;">
+                <div class="loading-wave">
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                </div>
+                <div class="loading-text" id="voice-loading-text">
+                  Đang khởi tạo mô hình AI và tổng hợp giọng đọc NSƯT Lê Chức...
+                </div>
+                <div class="loading-subtext">Quá trình này thường mất khoảng 2 - 5 giây</div>
+              </div>
+            </div>
+
+            <!-- Audio Output Result Card -->
+            <div id="voice-result-card" class="voice-result-card glass-panel" style="display: none;">
+              <div class="result-header">
+                <div class="result-title">
+                  <i class="fa-solid fa-circle-check" style="color: var(--success, #10b981);"></i>
+                  <span>Giọng Nói Đã Tạo Thành Công!</span>
+                </div>
+                <span class="result-duration" id="voice-result-duration">00:00</span>
+              </div>
+
+              <!-- Audio Player -->
+              <div class="custom-audio-player">
+                <audio id="voice-audio-element" preload="auto" controls style="width: 100%; border-radius: 12px; margin: 10px 0;"></audio>
+              </div>
+
+              <!-- Download and Share Actions -->
+              <div class="result-actions">
+                <a id="btn-download-voice-mp3" href="#" download="NSUT_Le_Chuc_AI_Voice.mp3" class="btn-download-mp3">
+                  <i class="fa-solid fa-file-arrow-down"></i> Tải Về File MP3
+                </a>
+                <button type="button" class="btn-copy-script" onclick="copyVoiceScript()">
+                  <i class="fa-solid fa-copy"></i> Sao chép văn bản
+                </button>
+              </div>
+            </div>
+
+            <!-- History List Card -->
+            <div id="voice-history-card" class="voice-history-card glass-panel" style="display: none;">
+              <div class="history-header">
+                <span class="history-title"><i class="fa-solid fa-clock-rotate-left"></i> Các bản đọc vừa tạo</span>
+                <button type="button" class="btn-clear-history" onclick="clearVoiceHistory()">Xóa lịch sử</button>
+              </div>
+              <div id="voice-history-list" class="history-items-list">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -1266,6 +1449,10 @@
       <i class="fa-solid fa-user" id="mobile-user-icon"></i>
       <span id="mobile-user-label">Tôi</span>
     </a>
+    <a href="#voice-ai" class="mobile-nav-item" onclick="navigateTo('voice-ai')">
+      <i class="fa-solid fa-microphone-lines"></i>
+      <span>AI voice</span>
+    </a>
   </nav>
 
   <div id="toast-container"></div>
@@ -1279,5 +1466,6 @@
   <script src="js/rentals.js?v=56.0"></script>
   <script src="js/customers.js?v=55.0"></script>
   <script src="js/reports.js?v=48.0"></script>
+  <script src="js/voice_ai.js?v=1.0"></script>
 </body>
 </html>

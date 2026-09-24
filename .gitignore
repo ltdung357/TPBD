@@ -1,3 +1,8 @@
 node_modules/
 .env
 *.log
+__pycache__/
+*.pyc
+backend/scratch/
+frontend/uploads/voice_ai/speech_*.mp3
+frontend/uploads/voice_ai/temp_*.wav

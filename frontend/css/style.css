@@ -808,9 +808,19 @@ body.modal-open {
   border-top: 1px solid rgba(226, 232, 240, 0.95) !important;
   box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.12) !important;
   z-index: 9000 !important;
-  justify-content: space-around !important;
+  justify-content: flex-start !important;
   align-items: center !important;
   padding: 0 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.mobile-bottom-nav::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .mobile-nav-item {
@@ -823,11 +833,15 @@ body.modal-open {
   text-decoration: none !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  flex: 1 !important;
+  flex: 0 0 calc((100vw - 8px) / 5) !important;
+  min-width: 72px !important;
   height: 100% !important;
   transition: all 0.2s ease !important;
   border-radius: 8px !important;
   cursor: pointer !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 .mobile-nav-item i {

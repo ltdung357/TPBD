@@ -286,7 +286,13 @@ function navigateTo(sectionId) {
   if (sidebarLink) sidebarLink.classList.add('active');
 
   const mobileLink = document.querySelector(`.mobile-nav-item[href="#${sectionId}"]`);
-  if (mobileLink) mobileLink.classList.add('active');
+  if (mobileLink) {
+    mobileLink.classList.add('active');
+    // Tự động cuộn thanh menu dưới tới nút đang chọn nếu bị tràn
+    try {
+      mobileLink.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+    } catch (e) {}
+  }
 
   const section = document.getElementById(`section-${sectionId}`);
   if (section) section.classList.add('active');
@@ -297,7 +303,8 @@ function navigateTo(sectionId) {
     costumes: 'Bộ Sưu Tập Trang Phục & Đạo Cụ Biểu Diễn',
     rentals: 'Quản Lý Đơn Thuê Trang Phục',
     customers: 'Danh Sách Khách Hàng & Đoàn Diễn',
-    account: 'Thông Tin Tài Khoản & Trung Tâm Trợ Giúp'
+    account: 'Thông Tin Tài Khoản & Trung Tâm Trợ Giúp',
+    'voice-ai': 'AI Voice Studio - Giọng Đọc NSƯT Lê Chức'
   };
   const titleEl = document.getElementById('header-page-title');
   if (titleEl) titleEl.innerText = titles[sectionId] || 'Trang Phục Biểu Diễn Thúy Hà';
@@ -307,6 +314,7 @@ function navigateTo(sectionId) {
   if (sectionId === 'costumes') loadCostumes();
   if (sectionId === 'rentals') loadRentals();
   if (sectionId === 'customers') loadCustomers();
+  if (sectionId === 'voice-ai' && typeof renderVoiceHistory === 'function') renderVoiceHistory();
 }
 
 function setupRouting() {
