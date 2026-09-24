@@ -91,6 +91,60 @@ function setupMobileNavEvents() {
       }
     }
   });
+
+  // ====== TỰ ĐỘNG ẨN MENU KHI VUỐT LÊN (CUỘN TRANG XUỐNG) & HIỆN KHI VUỐT XUỐNG ======
+  let lastScrollY = window.scrollY || 0;
+  let pageTouchStartY = 0;
+
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length === 1) {
+      pageTouchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    // Bỏ qua nếu đang chạm trên chính thanh menu dưới hoặc khi modal đang mở
+    if (e.target.closest('.mobile-bottom-nav') || document.body.classList.contains('modal-open')) return;
+
+    const currentTouchY = e.touches[0].clientY;
+    const deltaY = currentTouchY - pageTouchStartY;
+
+    // Vuốt tay lên (kéo trang xuống đọc tiếp nội dung) > 12px -> Ẩn menu dưới
+    if (deltaY < -12 && window.scrollY > 35) {
+      nav.classList.add('nav-hidden');
+    }
+    // Vuốt tay xuống (kéo trang lên trên) > 12px -> Hiện lại menu
+    else if (deltaY > 12) {
+      nav.classList.remove('nav-hidden');
+    }
+  }, { passive: true });
+
+  let scrollTicking = false;
+  window.addEventListener('scroll', () => {
+    if (!scrollTicking) {
+      window.requestAnimationFrame(() => {
+        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+
+        // Luôn hiện menu khi ở gần đầu trang
+        if (currentY <= 35) {
+          nav.classList.remove('nav-hidden');
+        } else {
+          const diff = currentY - lastScrollY;
+          if (diff > 8) {
+            // Cuộn trang xuống -> Ẩn menu
+            nav.classList.add('nav-hidden');
+          } else if (diff < -8) {
+            // Cuộn trang lên -> Hiện menu
+            nav.classList.remove('nav-hidden');
+          }
+        }
+        lastScrollY = currentY <= 0 ? 0 : currentY;
+        scrollTicking = false;
+      });
+      scrollTicking = true;
+    }
+  }, { passive: true });
 }
 
 // Toast notification helper
@@ -290,6 +344,9 @@ function navigateTo(sectionId) {
   // Tự động đóng tất cả các modal đang mở (như modal xem chi tiết) khi chuyển trang
   document.querySelectorAll('.modal-overlay.active').forEach(modal => modal.classList.remove('active'));
   document.body.classList.remove('modal-open');
+
+  const bottomNav = document.querySelector('.mobile-bottom-nav');
+  if (bottomNav) bottomNav.classList.remove('nav-hidden');
 
   // Guard admin pages if guest
   if (!currentUser && ['dashboard', 'rentals', 'customers'].includes(sectionId)) {
