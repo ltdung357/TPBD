@@ -3,17 +3,30 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 
-const AI_SERVICE_URL = process.env.AI_VOICE_SERVICE_URL || 'http://127.0.0.1:5055';
+// Cấu hình URL dịch vụ AI: Ưu tiên Modal Serverless GPU/CPU Cloud độc lập 24/24
+const MODAL_ENDPOINT_BASE = 'https://ltdung357--tpbd-voice-ai-voiceservice';
+const AI_SERVICE_URL = process.env.AI_VOICE_SERVICE_URL || MODAL_ENDPOINT_BASE;
 const SAMPLE_MP3_PATH = path.join(__dirname, '..', '..', 'frontend', 'uploads', 'voice_ai', 'NSUT_Le_Chuc_sample.mp3');
 const DEFAULT_WAV_PATH = 'E:\\Music_Made\\dongnoi\\voices\\NSUT_Le_Chuc.wav';
+
+function getEndpointUrl(action) {
+  // Nếu trỏ tới Modal Cloud
+  if (AI_SERVICE_URL.includes('modal.run') || AI_SERVICE_URL.includes('--tpbd-voice-ai-voiceservice')) {
+    const base = AI_SERVICE_URL.replace(/-(health|sample|synthesize)\.modal\.run$/, '').replace(/\.modal\.run$/, '');
+    return `${base}-${action}.modal.run`;
+  }
+  // Nếu trỏ tới local FastAPI (http://127.0.0.1:5055)
+  return `${AI_SERVICE_URL.replace(/\/$/, '')}/${action}`;
+}
 
 // GET /api/voice/health - Kiểm tra tình trạng AI Voice Service
 router.get('/health', async (req, res) => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(`${AI_SERVICE_URL}/health`, {
+    const healthUrl = getEndpointUrl('health');
+    const response = await fetch(healthUrl, {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
@@ -26,7 +39,7 @@ router.get('/health', async (req, res) => {
   } catch (err) {
     return res.json({
       connected: false,
-      message: 'Dịch vụ AI Voice chưa chạy trên port 5055. Hãy chạy START_TPBD_WITH_AI.bat để khởi động!'
+      message: 'Đang kết nối tới dịch vụ AI Voice Cloud...'
     });
   }
 });
@@ -34,6 +47,7 @@ router.get('/health', async (req, res) => {
 // GET /api/voice/sample - Phát file giọng mẫu của NSƯT Lê Chức
 router.get('/sample', (req, res) => {
   if (fs.existsSync(SAMPLE_MP3_PATH)) {
+    res.setHeader('Content-Type', 'audio/mpeg');
     return res.sendFile(SAMPLE_MP3_PATH);
   }
   if (fs.existsSync(DEFAULT_WAV_PATH)) {
@@ -56,14 +70,20 @@ router.post('/synthesize', async (req, res) => {
   }
 
   try {
-    const response = await fetch(`${AI_SERVICE_URL}/synthesize`, {
+    const synthUrl = getEndpointUrl('synthesize');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // Cho phép tối đa 120s nếu khởi động lạnh
+
+    const response = await fetch(synthUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: text.trim(),
         speed: typeof speed === 'number' ? speed : 1.0
-      })
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -79,7 +99,7 @@ router.post('/synthesize', async (req, res) => {
     console.error('❌ [Voice API Proxy Error]', err.message);
     return res.status(503).json({
       success: false,
-      message: 'Không thể kết nối đến máy chủ AI Voice (Port 5055). Vui lòng đảm bảo dịch vụ AI Python đã được khởi chạy!'
+      message: 'Không thể kết nối đến máy chủ AI Voice Cloud (Modal). Vui lòng thử lại sau vài giây!'
     });
   }
 });
