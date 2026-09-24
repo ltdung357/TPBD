@@ -18,11 +18,11 @@
 
   <title>Trang Phục Biểu Diễn Thúy Hà - Cho Thuê Trang Phục & Đạo Cụ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=8.0">
-  <link rel="stylesheet" href="css/voice_ai.css?v=2.1">
+  <link rel="stylesheet" href="css/style.css?v=8.2">
+  <link rel="stylesheet" href="css/voice_ai.css?v=2.2">
   <style>
     @media (max-width: 1024px) {
-      body { padding-bottom: 74px !important; }
+      body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important; }
       .sidebar { display: none !important; }
       .main-wrapper { margin-left: 0 !important; }
       .top-header { padding: 12px 16px; height: auto; min-height: 60px; flex-wrap: wrap; gap: 10px; }
@@ -79,31 +79,21 @@
       bottom: 0 !important;
       left: 0 !important;
       right: 0 !important;
-      height: 64px !important;
+      height: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+      padding-bottom: env(safe-area-inset-bottom, 0px) !important;
       background: #ffffff !important;
       border-top: 1px solid #e2e8f0 !important;
-      box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.15) !important;
+      box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.12) !important;
       z-index: 999999 !important;
-      justify-content: flex-start !important;
+      justify-content: space-around !important;
       align-items: center !important;
-      padding: 0 4px !important;
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: none !important;
-      -ms-overflow-style: none !important;
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      will-change: transform;
-    }
-    .mobile-bottom-nav::-webkit-scrollbar {
-      display: none !important;
-      width: 0 !important;
-      height: 0 !important;
+      padding-left: 2px !important;
+      padding-right: 2px !important;
+      overflow: visible !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
     }
 
-    .mobile-bottom-nav.nav-hidden {
-      transform: translateY(110%) !important;
-    }
     .mobile-nav-item {
       display: flex !important;
       flex-direction: column !important;
@@ -114,18 +104,27 @@
       text-decoration: none !important;
       font-size: 11px !important;
       font-weight: 600 !important;
-      flex: 0 0 calc((100vw - 8px) / 5) !important;
-      min-width: 72px !important;
-      height: 100% !important;
-      border-radius: 8px !important;
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+      height: 56px !important;
+      border-radius: 10px !important;
       cursor: pointer !important;
       white-space: nowrap !important;
       user-select: none !important;
-      -webkit-tap-highlight-color: transparent !important;
+      -webkit-user-select: none !important;
+      -webkit-touch-callout: none !important;
+      -webkit-tap-highlight-color: rgba(99, 102, 241, 0.12) !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
     }
     .mobile-nav-item i {
       font-size: 19px !important;
+      pointer-events: none !important;
       transition: transform 0.2s ease !important;
+    }
+    .mobile-nav-item span {
+      font-size: 10.5px !important;
+      pointer-events: none !important;
     }
     .mobile-nav-item.active {
       color: #6366f1 !important;
@@ -1465,29 +1464,29 @@
   </div>
 
   <nav class="mobile-bottom-nav">
-    <a href="#costumes" class="mobile-nav-item active" onclick="navigateTo('costumes')">
+    <a href="javascript:void(0)" class="mobile-nav-item active" data-section="costumes" onclick="event.preventDefault(); navigateTo('costumes')">
       <i class="fa-solid fa-shirt"></i>
       <span>Trang Phục</span>
     </a>
-    <a href="#dashboard" class="mobile-nav-item" onclick="navigateTo('dashboard')">
+    <a href="javascript:void(0)" class="mobile-nav-item admin-only" data-section="dashboard" onclick="event.preventDefault(); navigateTo('dashboard')">
       <i class="fa-solid fa-chart-pie"></i>
       <span>Tổng Quan</span>
     </a>
-    <a href="#rentals" class="mobile-nav-item" onclick="navigateTo('rentals')">
+    <a href="javascript:void(0)" class="mobile-nav-item admin-only" data-section="rentals" onclick="event.preventDefault(); navigateTo('rentals')">
       <i class="fa-solid fa-receipt"></i>
       <span>Đơn Thuê</span>
     </a>
-    <a href="#customers" class="mobile-nav-item" onclick="navigateTo('customers')">
+    <a href="javascript:void(0)" class="mobile-nav-item admin-only" data-section="customers" onclick="event.preventDefault(); navigateTo('customers')">
       <i class="fa-solid fa-users"></i>
       <span>Khách Hàng</span>
     </a>
-    <a href="#account" class="mobile-nav-item" onclick="navigateTo('account')">
+    <a href="javascript:void(0)" class="mobile-nav-item" data-section="voice-ai" onclick="event.preventDefault(); navigateTo('voice-ai')">
+      <i class="fa-solid fa-microphone-lines"></i>
+      <span>AI Voice</span>
+    </a>
+    <a href="javascript:void(0)" class="mobile-nav-item" data-section="account" onclick="event.preventDefault(); navigateTo('account')">
       <i class="fa-solid fa-user" id="mobile-user-icon"></i>
       <span id="mobile-user-label">Tôi</span>
-    </a>
-    <a href="#voice-ai" class="mobile-nav-item" onclick="navigateTo('voice-ai')">
-      <i class="fa-solid fa-microphone-lines"></i>
-      <span>AI voice</span>
     </a>
   </nav>
 
@@ -1497,11 +1496,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=51.0"></script>
+  <script src="js/app.js?v=52.0"></script>
   <script src="js/costumes.js?v=49.0"></script>
   <script src="js/rentals.js?v=56.0"></script>
   <script src="js/customers.js?v=55.0"></script>
   <script src="js/reports.js?v=48.0"></script>
-  <script src="js/voice_ai.js?v=2.2"></script>
+  <script src="js/voice_ai.js?v=2.3"></script>
 </body>
 </html>
