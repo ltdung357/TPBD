@@ -652,6 +652,23 @@ async function purgeAllRecycleBin() {
   } catch (err) {
     showToast(err.message, 'error');
   }
+
+// Ép làm mới trang và xóa triệt để bộ nhớ đệm cache trên điện thoại / standalone PWA
+function forceAppUpdate() {
+  showToast('Đang làm mới & nạp phiên bản mới nhất...', 'info');
+  setTimeout(() => {
+    try {
+      if ('caches' in window) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+      localStorage.removeItem('tpbd_cached_version');
+      sessionStorage.clear();
+    } catch (e) {}
+
+    const cleanUrl = window.location.origin + window.location.pathname;
+    const currentHash = window.location.hash || '#costumes';
+    window.location.replace(cleanUrl + '?v=' + Date.now() + currentHash);
+  }, 250);
 }
 
 

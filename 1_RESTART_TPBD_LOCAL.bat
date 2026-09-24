@@ -6,7 +6,7 @@ echo   [1] DANG KHOI DONG SERVER TPBD THUY HA (PORT 5050)
 echo ========================================================
 echo.
 
-cd /d "C:\xampp\htdocs\TPBD"
+cd /d "%~dp0"
 
 echo [*] Dang giai phong server cu neu co...
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do (

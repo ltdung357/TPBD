@@ -6,7 +6,7 @@ echo   [3] DANG DAY CODE TULOCAL LEN ONLINE (GITHUB / RENDER)
 echo ========================================================
 echo.
 
-cd /d "C:\xampp\htdocs\TPBD"
+cd /d "%~dp0"
 
 echo [*] Dang dong goi tat ca thay doi code local...
 "C:\Program Files\Git\cmd\git.exe" add .

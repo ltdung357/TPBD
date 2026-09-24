@@ -6,7 +6,7 @@ echo   [4] KICH HOAT RESTART / DEPLOY LAI WEB ONLINE (RENDER)
 echo ========================================================
 echo.
 
-cd /d "C:\xampp\htdocs\TPBD"
+cd /d "%~dp0"
 
 node backend/scratch/trigger_render_restart.js
 

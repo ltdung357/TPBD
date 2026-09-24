@@ -6,7 +6,7 @@ echo   [2] DANG DONG BO DATABASE TU ONLINE (NEON) VE LOCALHOST
 echo ========================================================
 echo.
 
-cd /d "C:\xampp\htdocs\TPBD"
+cd /d "%~dp0"
 
 echo [*] Dang keo tat ca du lieu DATABASE moi nhat tu Online ve may local...
 node backend/scratch/sync_online_to_local.js

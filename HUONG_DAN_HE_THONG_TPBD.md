@@ -5,7 +5,7 @@
 ## 🌐 1. THÔNG TIN TRANG WEB ONLINE & DỰ ÁN
 
 - **Link trang web chính thức (Mọi người cùng xem)**: [https://tpbd-thuyha.onrender.com](https://tpbd-thuyha.onrender.com)
-- **Thư mục nguồn trên máy tính (Local)**: `C:\xampp\htdocs\TPBD`
+- **Thư mục nguồn trên máy tính (Local)**: `E:\TPBD`
 - **Kho lưu trữ mã nguồn GitHub**: [https://github.com/ltdung357/TPBD](https://github.com/ltdung357/TPBD)
 
 ---
@@ -55,10 +55,10 @@
 
 ## 🛠️ 5. HƯỚNG DẪN CẬP NHẬT CODE KHI NÂNG CẤP TRANG WEB (GIT)
 
-Khi bạn thực hiện chỉnh sửa code dưới máy tính local `C:\xampp\htdocs\TPBD` và muốn đưa bản cập nhật lên mạng, bạn chỉ cần mở **PowerShell** và gõ 3 dòng lệnh:
+Khi bạn thực hiện chỉnh sửa code dưới máy tính local `E:\TPBD` và muốn đưa bản cập nhật lên mạng, bạn chỉ cần mở **PowerShell** và gõ 3 dòng lệnh (hoặc nhấp đúp file `3_DAY_CODE_LEN_ONLINE.bat`):
 
 ```powershell
-cd C:\xampp\htdocs\TPBD
+cd E:\TPBD
 git add .
 git commit -m "Cap nhat trang web TPBD"
 git push origin main
@@ -68,4 +68,4 @@ git push origin main
 
 ---
 
-*Tài liệu được tạo tự động và lưu trữ tại `C:\xampp\htdocs\TPBD\HUONG_DAN_HE_THONG_TPBD.md`.*
+*Tài liệu được tạo tự động và lưu trữ tại `E:\TPBD\HUONG_DAN_HE_THONG_TPBD.md`.*

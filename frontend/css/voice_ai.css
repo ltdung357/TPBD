@@ -705,8 +705,28 @@
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
+  #section-voice-ai,
+  .voice-ai-container,
+  .voice-header-card,
+  .voice-input-card,
+  .voice-result-card,
+  .voice-history-card,
+  .voice-profile-banner,
+  .voice-profile-info,
+  .voice-profile-text,
+  .textarea-wrapper,
+  .textarea-wrapper textarea,
+  .voice-options-row,
+  .emotion-tags-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   .voice-ai-container {
     gap: 12px;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .voice-header-card {
