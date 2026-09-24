@@ -42,11 +42,19 @@
   font-family: var(--font-family);
 }
 
-body {
+html, body {
   background: var(--bg-main);
   color: var(--text-body);
   min-height: 100vh;
-  overflow-x: hidden;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box;
+}
+
+#app-layout, .main-wrapper, .page-container, .page-section {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
 }
 
 /* Glass & Card Panels (Light Mode) */

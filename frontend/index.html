@@ -18,8 +18,8 @@
 
   <title>Trang Phục Biểu Diễn Thúy Hà - Cho Thuê Trang Phục & Đạo Cụ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=8.5">
-  <link rel="stylesheet" href="css/voice_ai.css?v=2.3">
+  <link rel="stylesheet" href="css/style.css?v=8.6">
+  <link rel="stylesheet" href="css/voice_ai.css?v=2.5">
   <style>
     @media (max-width: 1024px) {
       body { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important; }
@@ -649,9 +649,26 @@
                 <span class="result-duration" id="voice-result-duration">00:00</span>
               </div>
 
-              <!-- Audio Player -->
-              <div class="custom-audio-player">
-                <audio id="voice-audio-element" preload="auto" controls style="width: 100%; border-radius: 12px; margin: 10px 0;"></audio>
+              <!-- Audio Player (100% Mobile Responsive, No Native Overflow) -->
+              <div class="custom-audio-player" id="voice-custom-player">
+                <audio id="voice-audio-element" preload="auto" style="display: none;"></audio>
+                <div class="player-main-row">
+                  <button type="button" class="btn-player-play" id="btn-voice-play-pause" onclick="toggleVoiceAudioPlayback()" title="Phát / Dừng">
+                    <i class="fa-solid fa-play" id="icon-voice-play-pause"></i>
+                  </button>
+                  <div class="player-track-container">
+                    <div class="player-time-row">
+                      <span class="player-current-time" id="voice-player-current">00:00</span>
+                      <span class="player-total-time" id="voice-player-total">00:00</span>
+                    </div>
+                    <div class="player-progress-wrapper" onclick="seekVoiceAudio(event)" id="voice-progress-wrapper">
+                      <div class="player-progress-bar" id="voice-progress-bar" style="width: 0%;"></div>
+                    </div>
+                  </div>
+                  <button type="button" class="player-speed-pill" onclick="cycleVoicePlaybackSpeed()" id="voice-speed-pill" title="Đổi tốc độ phát">
+                    <span id="voice-speed-text">1.0x</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Download and Share Actions -->
@@ -1522,6 +1539,6 @@
   <script src="js/rentals.js?v=56.0"></script>
   <script src="js/customers.js?v=55.0"></script>
   <script src="js/reports.js?v=48.0"></script>
-  <script src="js/voice_ai.js?v=2.4"></script>
+  <script src="js/voice_ai.js?v=2.5"></script>
 </body>
 </html>

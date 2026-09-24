@@ -234,6 +234,15 @@ async function synthesizeSpeech() {
         durationEl.innerText = `${data.duration.toFixed(1)}s`;
       }
 
+      const totalTimeEl = document.getElementById('voice-player-total');
+      const curTimeEl = document.getElementById('voice-player-current');
+      const progressBar = document.getElementById('voice-progress-bar');
+      if (curTimeEl) curTimeEl.innerText = '00:00';
+      if (progressBar) progressBar.style.width = '0%';
+      if (totalTimeEl && data.duration) {
+        totalTimeEl.innerText = formatPlayerTime(data.duration);
+      }
+
       resultCard.style.display = 'flex';
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -357,12 +366,99 @@ function renderVoiceHistory() {
   }
 }
 
+// ====== CUSTOM AUDIO PLAYER CONTROLLER (ZERO HORIZONTAL OVERFLOW) ======
+let currentVoiceAudioSpeed = 1.0;
+
+function formatPlayerTime(seconds) {
+  if (isNaN(seconds) || seconds < 0) return '00:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function initCustomAudioPlayer() {
+  const audio = document.getElementById('voice-audio-element');
+  const playIcon = document.getElementById('icon-voice-play-pause');
+  const curTimeEl = document.getElementById('voice-player-current');
+  const totalTimeEl = document.getElementById('voice-player-total');
+  const progressBar = document.getElementById('voice-progress-bar');
+  if (!audio) return;
+
+  audio.addEventListener('play', () => {
+    if (playIcon) playIcon.className = 'fa-solid fa-pause';
+  });
+
+  audio.addEventListener('pause', () => {
+    if (playIcon) playIcon.className = 'fa-solid fa-play';
+  });
+
+  audio.addEventListener('ended', () => {
+    if (playIcon) playIcon.className = 'fa-solid fa-play';
+    if (progressBar) progressBar.style.width = '0%';
+    if (curTimeEl) curTimeEl.innerText = '00:00';
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration || isNaN(audio.duration)) return;
+    const pct = Math.min(100, Math.max(0, (audio.currentTime / audio.duration) * 100));
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (curTimeEl) curTimeEl.innerText = formatPlayerTime(audio.currentTime);
+  });
+
+  audio.addEventListener('loadedmetadata', () => {
+    if (totalTimeEl && audio.duration && !isNaN(audio.duration)) {
+      totalTimeEl.innerText = formatPlayerTime(audio.duration);
+    }
+  });
+}
+
+function toggleVoiceAudioPlayback() {
+  const audio = document.getElementById('voice-audio-element');
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().catch(e => console.log(e));
+  } else {
+    audio.pause();
+  }
+}
+
+function seekVoiceAudio(event) {
+  const audio = document.getElementById('voice-audio-element');
+  const wrapper = document.getElementById('voice-progress-wrapper');
+  if (!audio || !wrapper || !audio.duration) return;
+
+  const rect = wrapper.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const pct = Math.max(0, Math.min(1, clickX / rect.width));
+  audio.currentTime = pct * audio.duration;
+}
+
+function cycleVoicePlaybackSpeed() {
+  const audio = document.getElementById('voice-audio-element');
+  const speedText = document.getElementById('voice-speed-text');
+  if (!audio) return;
+
+  const speeds = [1.0, 1.25, 1.5, 0.8];
+  const nextIdx = (speeds.indexOf(currentVoiceAudioSpeed) + 1) % speeds.length;
+  currentVoiceAudioSpeed = speeds[nextIdx];
+  audio.playbackRate = currentVoiceAudioSpeed;
+  if (speedText) speedText.innerText = `${currentVoiceAudioSpeed}x`;
+}
+
 function playHistoryAudio(url) {
   const audioEl = document.getElementById('voice-audio-element');
   const resultCard = document.getElementById('voice-result-card');
+  const curTimeEl = document.getElementById('voice-player-current');
+  const progressBar = document.getElementById('voice-progress-bar');
+  if (curTimeEl) curTimeEl.innerText = '00:00';
+  if (progressBar) progressBar.style.width = '0%';
+
   if (audioEl) {
     audioEl.src = url;
-    if (resultCard) resultCard.style.display = 'flex';
+    if (resultCard) {
+      resultCard.style.display = 'flex';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     audioEl.play().catch(e => console.log(e));
   }
 }
@@ -403,4 +499,5 @@ document.addEventListener('DOMContentLoaded', () => {
   updateVoiceActionUI();
   renderVoiceHistory();
   updateVoiceTextCount();
+  initCustomAudioPlayer();
 });
