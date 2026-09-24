@@ -367,7 +367,8 @@ async function loadSizes() {
   try {
     const res = await fetch('/api/costumes/sizes');
     if (!res.ok) return;
-    sizesList = sortCostumeSizes(await res.json());
+    const rawData = await res.json();
+    sizesList = sortCostumeSizes(Array.isArray(rawData) ? rawData : []);
     renderSizeDropdown();
     renderExistingSizesList();
     renderFilterSizeSelect();
@@ -379,6 +380,7 @@ async function loadSizes() {
 function renderSizeDropdown(selectTargetName = null) {
   const selectEl = document.getElementById('costume-size');
   if (!selectEl) return;
+  if (!Array.isArray(sizesList)) sizesList = [];
 
   const currentVal = selectTargetName || selectEl.value || (sizesList[0] ? sizesList[0].name : 'FREE');
 

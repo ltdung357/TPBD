@@ -5,15 +5,92 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
   setupRouting();
-  setupMobileNavScroll();
+  setupMobileNavEvents();
 });
 
-// Giữ thanh menu dưới luôn hiển thị cố định và phản hồi chạm tức thì trên mọi điện thoại
-function setupMobileNavScroll() {
+// Thiết lập sự kiện cảm ứng chạm, vuốt và click nhạy 100% trên mọi dòng điện thoại (iOS, Android, PWA)
+function setupMobileNavEvents() {
   const nav = document.querySelector('.mobile-bottom-nav');
-  if (nav) {
-    nav.classList.remove('nav-hidden');
-  }
+  if (!nav) return;
+
+  nav.classList.remove('nav-hidden');
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
+
+  nav.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = false;
+    }
+  }, { passive: true });
+
+  nav.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches.length === 1) {
+      const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+      const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+      if (diffX > 7 || diffY > 7) {
+        isSwiping = true;
+      }
+    }
+  }, { passive: true });
+
+  nav.addEventListener('touchend', (e) => {
+    if (!isSwiping) {
+      const item = e.target.closest('.mobile-nav-item');
+      if (item) {
+        const sec = item.getAttribute('data-section');
+        if (sec) {
+          e.preventDefault();
+          navigateTo(sec);
+        }
+      }
+    }
+  });
+
+  // Hỗ trợ cả thao tác kéo vuốt bằng chuột khi xem ở chế độ giả lập mobile trên PC
+  let isMouseDown = false;
+  let mouseStartX = 0;
+  let mouseScrollLeft = 0;
+  let hasDragged = false;
+
+  nav.addEventListener('mousedown', (e) => {
+    isMouseDown = true;
+    hasDragged = false;
+    mouseStartX = e.pageX - nav.offsetLeft;
+    mouseScrollLeft = nav.scrollLeft;
+  });
+
+  window.addEventListener('mouseup', () => {
+    isMouseDown = false;
+  });
+
+  nav.addEventListener('mousemove', (e) => {
+    if (!isMouseDown) return;
+    const x = e.pageX - nav.offsetLeft;
+    const walk = (x - mouseStartX);
+    if (Math.abs(walk) > 5) {
+      hasDragged = true;
+      nav.scrollLeft = mouseScrollLeft - walk;
+    }
+  });
+
+  nav.addEventListener('click', (e) => {
+    if (hasDragged || isSwiping) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const item = e.target.closest('.mobile-nav-item');
+    if (item) {
+      const sec = item.getAttribute('data-section');
+      if (sec) {
+        navigateTo(sec);
+      }
+    }
+  });
 }
 
 // Toast notification helper
@@ -216,8 +293,10 @@ function navigateTo(sectionId) {
 
   // Guard admin pages if guest
   if (!currentUser && ['dashboard', 'rentals', 'customers'].includes(sectionId)) {
-    showToast('Vui lòng đăng nhập để truy cập trang quản lý!', 'error');
-    window.location.href = 'login.html';
+    showToast('Vui lòng đăng nhập để truy cập trang quản lý!', 'warning');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 700);
     return;
   }
 
@@ -230,6 +309,9 @@ function navigateTo(sectionId) {
   const mobileLink = document.querySelector(`.mobile-nav-item[data-section="${sectionId}"], .mobile-nav-item[href="#${sectionId}"]`);
   if (mobileLink) {
     mobileLink.classList.add('active');
+    try {
+      mobileLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    } catch (e) {}
   }
 
   const section = document.getElementById(`section-${sectionId}`);
