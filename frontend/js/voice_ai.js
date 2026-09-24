@@ -116,8 +116,39 @@ function toggleVoiceSample() {
   });
 }
 
+// Helper: Lấy thông tin tài khoản hiện tại (nếu có)
+function getVoiceCurrentUser() {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.id) {
+    return currentUser;
+  }
+  try {
+    const saved = localStorage.getItem('tpbd_user');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  return null;
+}
+
+// Helper: Hiển thị modal liên hệ dành riêng cho khách
+function showGuestVoiceContactModal() {
+  if (typeof openModal === 'function') {
+    openModal('modal-guest-voice-contact');
+  } else {
+    const modal = document.getElementById('modal-guest-voice-contact');
+    if (modal) modal.classList.add('active');
+  }
+}
+
 // 6. Tổng hợp giọng nói từ văn bản
 async function synthesizeSpeech() {
+  // PHÂN QUYỀN: Khách KHÔNG được phép tạo giọng nói AI -> Hiện thông báo liên hệ
+  const user = getVoiceCurrentUser();
+  const token = localStorage.getItem('tpbd_token');
+
+  if (!user || !token) {
+    showGuestVoiceContactModal();
+    return;
+  }
+
   const textarea = document.getElementById('voice-text-input');
   const text = (textarea ? textarea.value : '').trim();
   const speedSlider = document.getElementById('voice-speed-slider');
@@ -165,11 +196,21 @@ async function synthesizeSpeech() {
   try {
     const res = await fetch('/api/voice/synthesize', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
       body: JSON.stringify({ text, speed })
     });
 
     const data = await res.json();
+
+    if (res.status === 401 || res.status === 403) {
+      if (loading) loading.style.display = 'none';
+      if (btn) btn.disabled = false;
+      showGuestVoiceContactModal();
+      return;
+    }
 
     if (!res.ok || !data.success) {
       throw new Error(data.message || 'Không thể tạo giọng nói. Vui lòng kiểm tra lại dịch vụ AI.');
@@ -199,7 +240,7 @@ async function synthesizeSpeech() {
       // Tự động phát âm thanh vừa sinh
       audioEl.play().catch(e => console.log('Autoplay prevented:', e));
 
-      // Lưu lịch sử
+      // Lưu lịch sử (Chỉ lưu vào đúng tài khoản đang đăng nhập)
       saveToVoiceHistory({
         id: Date.now(),
         text: text,
@@ -241,13 +282,21 @@ function copyVoiceScript() {
   });
 }
 
-// 8. Quản lý lịch sử tạo giọng trong LocalStorage
+// 8. Quản lý lịch sử tạo giọng trong LocalStorage (Phân quyền theo từng tài khoản)
+function getVoiceHistoryKey() {
+  const user = getVoiceCurrentUser();
+  if (!user || !user.id) return null; // Khách: không có key
+  return `tpbd_voice_history_u${user.id}`;
+}
+
 function saveToVoiceHistory(item) {
+  const key = getVoiceHistoryKey();
+  if (!key) return; // Khách: KHÔNG lưu lịch sử
   try {
-    let history = JSON.parse(localStorage.getItem('tpbd_voice_history') || '[]');
+    let history = JSON.parse(localStorage.getItem(key) || '[]');
     history.unshift(item);
     if (history.length > 8) history = history.slice(0, 8); // Giữ tối đa 8 bản gần nhất
-    localStorage.setItem('tpbd_voice_history', JSON.stringify(history));
+    localStorage.setItem(key, JSON.stringify(history));
     renderVoiceHistory();
   } catch (e) {
     console.warn('LocalStorage error:', e);
@@ -259,14 +308,30 @@ function renderVoiceHistory() {
   const list = document.getElementById('voice-history-list');
   if (!card || !list) return;
 
+  const user = getVoiceCurrentUser();
+  const key = getVoiceHistoryKey();
+
+  // PHÂN QUYỀN: Khách KHÔNG ĐƯỢC HIỆN LỊCH SỬ
+  if (!user || !key) {
+    card.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
   try {
-    const history = JSON.parse(localStorage.getItem('tpbd_voice_history') || '[]');
+    const history = JSON.parse(localStorage.getItem(key) || '[]');
     if (history.length === 0) {
       card.style.display = 'none';
       return;
     }
 
     card.style.display = 'flex';
+    const titleEl = card.querySelector('.history-title');
+    if (titleEl) {
+      const displayName = user.name || user.username || 'Tài khoản';
+      titleEl.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Giọng Đọc Của Bạn (${escapeHtmlVoice(displayName)})`;
+    }
+
     list.innerHTML = history.map(item => `
       <div class="history-item">
         <div class="history-item-content">
@@ -303,10 +368,12 @@ function playHistoryAudio(url) {
 }
 
 function clearVoiceHistory() {
-  localStorage.removeItem('tpbd_voice_history');
+  const key = getVoiceHistoryKey();
+  if (!key) return;
+  localStorage.removeItem(key);
   renderVoiceHistory();
   if (typeof showToast === 'function') {
-    showToast('Đã xóa sạch lịch sử giọng đọc!', 'info');
+    showToast('Đã xóa sạch lịch sử giọng đọc của bạn!', 'info');
   }
 }
 
@@ -317,8 +384,23 @@ function escapeHtmlVoice(str) {
   });
 }
 
+// 9. Cập nhật giao diện nút bấm theo quyền khách / thành viên
+function updateVoiceActionUI() {
+  const btn = document.getElementById('btn-synthesize-voice');
+  if (!btn) return;
+  const user = getVoiceCurrentUser();
+  if (!user) {
+    btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span>Tạo Giọng Nói (Đăng Nhập Hoặc Liên Hệ)</span>';
+    btn.title = 'Tính năng dành riêng cho quản lý & khách hàng tiệm. Bấm để xem liên hệ';
+  } else {
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span>Tạo Giọng Nói (Đọc Văn Bản)</span>';
+    btn.title = 'Chuyển văn bản thành giọng nói AI';
+  }
+}
+
 // Khởi chạy khi DOM sẵn sàng
 document.addEventListener('DOMContentLoaded', () => {
+  updateVoiceActionUI();
   renderVoiceHistory();
   updateVoiceTextCount();
 });

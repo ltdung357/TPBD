@@ -251,6 +251,10 @@ function updateUserUI() {
       `;
     }
   }
+
+  // Cập nhật phân quyền giao diện AI Voice Studio
+  if (typeof updateVoiceActionUI === 'function') updateVoiceActionUI();
+  if (typeof renderVoiceHistory === 'function') renderVoiceHistory();
 }
 
 function handleMobileUserAction() {

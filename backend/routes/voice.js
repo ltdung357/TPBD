@@ -57,8 +57,34 @@ router.get('/sample', (req, res) => {
   return res.status(404).json({ message: 'Không tìm thấy file mẫu giọng đọc NSƯT Lê Chức.' });
 });
 
-// POST /api/voice/synthesize - Chuyển văn bản thành giọng nói AI
-router.post('/synthesize', async (req, res) => {
+const jwt = require('jsonwebtoken');
+
+// Middleware phân quyền: Khách chỉ được nghe mẫu, chỉ tài khoản đăng nhập mới được tạo giọng nói
+function requireVoiceAuth(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.query.token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Tính năng tạo giọng nói AI yêu cầu đăng nhập tài khoản. Quý khách vui lòng liên hệ Hotline / Zalo: 0962.384.661 để sử dụng dịch vụ!'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({
+      success: false,
+      message: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại hoặc liên hệ Hotline / Zalo: 0962.384.661!'
+    });
+  }
+}
+
+// POST /api/voice/synthesize - Chuyển văn bản thành giọng nói AI (Yêu cầu đăng nhập)
+router.post('/synthesize', requireVoiceAuth, async (req, res) => {
   const { text, speed } = req.body;
 
   if (!text || !text.trim()) {

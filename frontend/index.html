@@ -1431,6 +1431,39 @@
     </div>
   </div>
 
+  <!-- Modal Thông Báo Phân Quyền & Liên Hệ Khi Khách Bấm Tạo Giọng AI -->
+  <div id="modal-guest-voice-contact" class="modal-overlay">
+    <div class="modal-box glass-panel" style="max-width: 480px; text-align: center; padding: 28px 24px;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #e0e7ff, #eef2ff); color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px; box-shadow: 0 6px 18px rgba(79, 70, 229, 0.2);">
+        <i class="fa-solid fa-microphone-lines"></i>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--text-heading); margin-bottom: 8px;">
+        Tính Năng Dành Cho Thành Viên & Quản Lý
+      </h3>
+      <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.55; margin-bottom: 22px;">
+        Chức năng tạo giọng nói AI nghệ sĩ <strong>NSƯT Lê Chức</strong> hiện chỉ áp dụng cho quản lý và khách hàng đăng ký của tiệm.
+        <br><br>
+        Quý khách vui lòng liên hệ trực tiếp với chúng tôi để được tư vấn, đăng ký hoặc cấp tài khoản sử dụng:
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+        <a href="https://zalo.me/0962384661" target="_blank" class="btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 700; font-size: 14px; text-decoration: none; border-radius: 12px; background: #0068ff; color: #fff; box-shadow: 0 4px 14px rgba(0, 104, 255, 0.3);">
+          <i class="fa-solid fa-comment-dots"></i> Nhắn Tin Zalo: 0962.384.661
+        </a>
+        <a href="tel:0962384661" class="btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 700; font-size: 14px; text-decoration: none; border-radius: 12px; background: #ecfdf5; color: #059669; border: 1.5px solid #a7f3d0;">
+          <i class="fa-solid fa-phone"></i> Gọi Trực Tiếp: 0962.384.661
+        </a>
+        <a href="login.html" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-weight: 600; font-size: 13px; text-decoration: none; border-radius: 12px;">
+          <i class="fa-solid fa-key"></i> Đăng Nhập Quản Lý / Nhân Viên
+        </a>
+      </div>
+
+      <button type="button" class="btn" onclick="closeModal('modal-guest-voice-contact')" style="background: none; border: none; color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline;">
+        Để sau, tôi muốn nghe thử giọng mẫu
+      </button>
+    </div>
+  </div>
+
   <nav class="mobile-bottom-nav">
     <a href="#costumes" class="mobile-nav-item active" onclick="navigateTo('costumes')">
       <i class="fa-solid fa-shirt"></i>
@@ -1464,11 +1497,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <!-- Script Imports -->
-  <script src="js/app.js?v=50.0"></script>
+  <script src="js/app.js?v=51.0"></script>
   <script src="js/costumes.js?v=49.0"></script>
   <script src="js/rentals.js?v=56.0"></script>
   <script src="js/customers.js?v=55.0"></script>
   <script src="js/reports.js?v=48.0"></script>
-  <script src="js/voice_ai.js?v=2.1"></script>
+  <script src="js/voice_ai.js?v=2.2"></script>
 </body>
 </html>
