@@ -180,10 +180,13 @@ async function synthesizeSpeech() {
     if (btn) btn.disabled = false;
 
     if (resultCard && audioEl) {
-      const audioUrl = data.audio_url + '?t=' + Date.now();
+      let audioUrl = data.audio_url ? (data.audio_url + '?t=' + Date.now()) : '';
+      if (data.audio_base64) {
+        audioUrl = 'data:audio/mp3;base64,' + data.audio_base64;
+      }
       audioEl.src = audioUrl;
       if (downloadBtn) {
-        downloadBtn.href = data.audio_url;
+        downloadBtn.href = audioUrl;
         downloadBtn.download = `Le_Chuc_AI_${Date.now()}.mp3`;
       }
       if (durationEl && data.duration) {
@@ -200,7 +203,7 @@ async function synthesizeSpeech() {
       saveToVoiceHistory({
         id: Date.now(),
         text: text,
-        audio_url: data.audio_url,
+        audio_url: audioUrl,
         duration: data.duration || 0,
         created_at: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       });
